@@ -242,8 +242,8 @@ tinsert(applyFuncs, function()
 		"CharacterSecondaryHandSlot",
 	}) do
 		local f = _G[slot]
-		Addon.AddBorder(f, nil, 1)
-		f:SetBorderLayer("OVERLAY")
+		AddBorder(f, nil, 1)
+		f.IconBorder:SetTexture("")
 		_G[slot.."Frame"]:SetTexture("")
 	end
 
@@ -263,6 +263,8 @@ tinsert(applyFuncs, function()
 		ColorByClass(self)
 	end)
 
+	-- Equipment flyouts
+
 	hooksecurefunc("EquipmentFlyout_Show", function(parent)
 		local f = EquipmentFlyoutFrame.buttonFrame
 		for i = 1, f.numBGs do
@@ -271,8 +273,11 @@ tinsert(applyFuncs, function()
 	end)
 
 	hooksecurefunc("EquipmentFlyout_DisplayButton", function(self)
-		AddBorder(self)
-		self:SetBorderInsets(1) -- scale is wrong on load
+		if not button.__PhanxBorder then
+			AddBorder(self)
+			self:SetBorderInsets(1) -- scale is wrong on load
+			self.IconBorder:SetTexture("")
+		end
 
 		local location = self.location
 		if location and location < EQUIPMENTFLYOUT_FIRST_SPECIAL_LOCATION then
@@ -284,6 +289,29 @@ tinsert(applyFuncs, function()
 		end
 
 		self:SetBorderColor()
+	end)
+
+	-- Equipment manager
+
+	hooksecurefunc("PaperDollEquipmentManagerPane_Update", function()
+		local buttons = PaperDollEquipmentManagerPane.buttons
+		for i = 1, #buttons do
+			local button = buttons[i]
+			if not button.__PhanxBorder then
+				AddBorder(button)
+				button:SetBorderInsets(3, 129, 4, 4)
+				button.icon:SetDrawLayer("BORDER")
+				button.BgTop:SetTexture("")
+				button.BgMiddle:SetTexture("")
+				button.BgBottom:SetTexture("")
+			end
+			button:SetBorderAlpha(button.name and 1 or 0)
+			if button.Check:IsShown() then
+				button:SetBorderColor(1, 0.82, 0)
+			else
+				button:SetBorderColor()
+			end
+		end
 	end)
 
 	---------------------------------------------------------------------
