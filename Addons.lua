@@ -12,8 +12,9 @@ local USE_CLASS_COLOR = true
 local _, Addon = ...
 local Masque = IsAddOnLoaded("Masque")
 
-local AddBorder = Addon.AddBorder
 local noop = Addon.noop
+local AddBorder = Addon.AddBorder
+local ColorByClass = Addon.ColorByClass
 
 ------------------------------------------------------------------------
 
@@ -38,43 +39,6 @@ eventFrame:SetScript("OnEvent", function(self, event)
 end)
 
 ------------------------------------------------------------------------
---	Dewdrop-2.0
-------------------------------------------------------------------------
---[[
-tinsert(applyFuncs, function()
-	local Dewdrop = LibStub and LibStub("Dewdrop-2.0", true)
-	if Dewdrop then
-		local function AddDewdropBorders()
-			local i = 1
-			while true do
-				local f = _G["Dewdrop20Level" .. i]
-				if not f then break end
-				if not f.__PhanxBorder then
-					local j = 1
-					while true do
-						local fc = select(j, f:GetChildren())
-						if not fc then break end
-						if fc.GetBackdrop then
-							fc:SetBackdropColor(0, 0, 0, 0)
-							fc:SetBackdropBorderColor(0, 0, 0, 0)
-							fc:SetBackdrop(nil)
-						end
-						j = j + 1
-					end
-					f:SetBackdrop(GameTooltip:GetBackdrop())
-					f:SetBackdropColor(0, 0, 0, 0.8)
-					AddBorder(f)
-				end
-				i = i + 1
-			end
-		end
-		hooksecurefunc(Dewdrop, "Open", AddDewdropBorders)
-		AddDewdropBorders()
-		return true
-	end
-end)
-]]
-------------------------------------------------------------------------
 --	LibQTip-1.0
 ------------------------------------------------------------------------
 
@@ -94,33 +58,9 @@ tinsert(applyFuncs, function()
 end)
 
 ------------------------------------------------------------------------
---	Tablet-2.0
-------------------------------------------------------------------------
---[[
-tinsert(applyFuncs, function()
-	local Tablet = LibStub and LibStub("Tablet-2.0", true)
-	if Tablet then
-		local function AddTabletBorders()
-			AddBorder(Tablet20Frame)
-			local i = 1
-			while true do
-				local frame = _G["Tablet20DetachedFrame" .. i]
-				if not frame then break end
-				AddBorder(frame)
-				i = i + 1
-			end
-		end
-		hooksecurefunc(Tablet, "Open", AddTabletBorders)
-		hooksecurefunc(Tablet, "Detach", AddTabletBorders)
-		AddTabletBorders()
-		return true
-	end
-end)
-]]
-------------------------------------------------------------------------
 --	Archy
 ------------------------------------------------------------------------
-
+--[[
 tinsert(applyFuncs, function()
 	if not ArchyDigSiteFrame then return end
 
@@ -143,11 +83,11 @@ tinsert(applyFuncs, function()
 
 	return true
 end)
-
+]]
 ------------------------------------------------------------------------
 --	AtlasLoot
 ------------------------------------------------------------------------
---[[
+
 tinsert(applyFuncs, function()
 	if AtlasLootTooltip then
 		-- print("Adding border to AtlasLootTooltip")
@@ -155,7 +95,7 @@ tinsert(applyFuncs, function()
 		return true
 	end
 end)
-]]
+
 ------------------------------------------------------------------------
 --	Auracle
 ------------------------------------------------------------------------
@@ -193,7 +133,7 @@ end)
 ------------------------------------------------------------------------
 --	Bagnon
 ------------------------------------------------------------------------
---[[
+
 tinsert(applyFuncs, function()
 	if not Bagnon then return end
 
@@ -207,9 +147,15 @@ tinsert(applyFuncs, function()
 		button.icon:SetTexCoord(0.03, 0.97, 0.03, 0.97)
 	end
 	local function ItemSlot_OnEnter(button)
-		Addon.ColorByClass(button)
+		button.__UpdateBorder = button.UpdateBorder
+		button.UpdateBorder = noop
+
+		ColorByClass(button)
 	end
 	local function ItemSlot_OnLeave(button)
+		button.UpdateBorder = button.__UpdateBorder
+		button.__UpdateBorder = noop
+
 		button:UpdateBorder()
 	end
 
@@ -220,7 +166,7 @@ tinsert(applyFuncs, function()
 		button:GetNormalTexture():SetTexture("")
 		button:GetHighlightTexture():SetTexture("")
 		--button.icon:SetTexCoord(0.04, 0.96, 0.04, 0.96)
-		button.border.Show = button.border.Hide
+		--button.border.Show = button.border.Hide
 		hooksecurefunc(button, "HideBorder", button.SetBorderColor)
 		hooksecurefunc(button, "Update", ItemSlot_Update)
 		button:HookScript("OnEnter", ItemSlot_OnEnter)
@@ -228,7 +174,10 @@ tinsert(applyFuncs, function()
 		return button
 	end
 
+	local origBorderSize = {}
+	
 	local function ResizeChildBorders(frame)
+		frame:SetBorderSize(origBorderSize[frame] / (frame:GetSettings().db.frameDB.scale or 1))
 		for i = 1, frame:GetNumChildren() do
 			local child = select(i, frame:GetChildren())
 			local slots = child.itemSlots
@@ -245,6 +194,8 @@ tinsert(applyFuncs, function()
 		--print("Adding border to Bagnon", id, "frame")
 		local frame = Bagnon.frames[id]
 		AddBorder(frame)
+		origBorderSize[frame] = frame:GetBorderSize()
+		frame:SetBorderSize(origBorderSize[frame] / (frame:GetSettings().db.frameDB.scale or 1))
 		hooksecurefunc(frame, "UpdateScale", ResizeChildBorders)
 
 		if USE_CLASS_COLOR then
@@ -258,7 +209,7 @@ tinsert(applyFuncs, function()
 
 	return true
 end)
-]]
+
 ------------------------------------------------------------------------
 --	Bazooka
 ------------------------------------------------------------------------
@@ -347,6 +298,7 @@ end)
 tinsert(applyFuncs, function()
 	if CliqueSpellTab then
 		AddBorder(CliqueSpellTab)
+		CliqueSpellTab:GetNormalTexture():SetTexCoord(0.06, 0.94, 0.06, 0.94)
 		return true
 	end
 end)
@@ -354,6 +306,7 @@ end)
 ------------------------------------------------------------------------
 --	CoolLine
 ------------------------------------------------------------------------
+--[==[
 tinsert(applyFuncs, function()
 	if CoolLine then
 		-- print("Adding border to CoolLine")
@@ -383,6 +336,7 @@ tinsert(applyFuncs, function()
 		return true
 	end
 end)
+]==]
 ------------------------------------------------------------------------
 --	DockingStation
 ------------------------------------------------------------------------
@@ -417,7 +371,7 @@ end)
 ------------------------------------------------------------------------
 --	Grid
 ------------------------------------------------------------------------
-
+--[==[
 tinsert(applyFuncs, function()
 --[[
 	if GridLayoutFrame then
@@ -473,7 +427,7 @@ tinsert(applyFuncs, function()
 		return true
 	end
 end)
-
+]==]
 ------------------------------------------------------------------------
 --	InFlight
 ------------------------------------------------------------------------
@@ -514,7 +468,7 @@ end)
 ------------------------------------------------------------------------
 --	Omen
 ------------------------------------------------------------------------
---[[
+
 tinsert(applyFuncs, function()
 	if OmenBarList then
 		-- print("Adding border to Omen")
@@ -522,7 +476,7 @@ tinsert(applyFuncs, function()
 		return true
 	end
 end)
-]]
+
 ------------------------------------------------------------------------
 --	PetBattleTeams
 ------------------------------------------------------------------------
@@ -544,7 +498,7 @@ end)
 ------------------------------------------------------------------------
 --	PetJournalEnhanced
 ------------------------------------------------------------------------
-
+--[[
 tinsert(applyFuncs, function()
 	local PetJournalEnhanced = LibStub and LibStub("AceAddon-3.0", true) and LibStub("AceAddon-3.0"):GetAddon("PetJournalEnhanced", true)
 	if not PetJournalEnhanced then return end
@@ -587,7 +541,7 @@ tinsert(applyFuncs, function()
 
 	return true
 end)
-
+]]
 ------------------------------------------------------------------------
 --	PetTracker
 ------------------------------------------------------------------------
@@ -641,7 +595,7 @@ end)
 ------------------------------------------------------------------------
 --	QuestPointer
 ------------------------------------------------------------------------
---[[
+
 tinsert(applyFuncs, function()
 	if QuestPointerTooltip then
 		-- print("Adding border to QuestPointerTooltip")
@@ -649,7 +603,7 @@ tinsert(applyFuncs, function()
 		return true
 	end
 end)
-]]
+
 ------------------------------------------------------------------------
 --	SexyCooldown
 ------------------------------------------------------------------------
@@ -755,16 +709,6 @@ tinsert(applyFuncs, function()
 	hooksecurefunc(Touhin, "AddLoot", ProcessRow)
 end)
 
-------------------------------------------------------------------------
---	TourGuide
-------------------------------------------------------------------------
---[[
-tinsert(applyFuncs, function()
-	if TourGuide and TourGuide.statusframe then
-		-- print("Adding border to TourGuide status frame")
-		AddBorder(TourGuide.statusframe)
-		AddBorder(TourGuideItemFrame)
-		return true
-	end
-end)
-]]
+---------------------------------------------------------------------
+-- xMerchant
+---------------------------------------------------------------------
