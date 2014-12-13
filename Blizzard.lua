@@ -486,7 +486,9 @@ tinsert(applyFuncs, function()
 	---------------------------------------------------------------------
 
 	for i = 1, 5 do
-		AddBorder(_G["SpellBookSkillLineTab"..i])
+		local tab = _G["SpellBookSkillLineTab"..i]
+		AddBorder(tab)
+		tab:GetNormalTexture():SetTexCoord(0.06, 0.94, 0.06, 0.94)
 	end
 
 	local function Button_OnDisable(self)
@@ -495,16 +497,25 @@ tinsert(applyFuncs, function()
 	local function Button_OnEnable(self)
 		self:SetAlpha(1)
 	end
+	local function Button_OnEnter(self)
+		local color = (CUSTOM_CLASS_COLORS or RAID_CLASS_COLORS)[PLAYER_CLASS]
+		self:SetBorderColor(color.r, color.g, color.b)
+	end
+	local function Button_OnLeave(self)
+		self:SetBorderColor()
+	end
 
 	for i = 1, SPELLS_PER_PAGE do
 		local button = _G["SpellButton" .. i]
-		AddBorder(button)
+		AddBorder(button, nil, nil, false)
 		button.EmptySlot:SetTexture("")
 		button.UnlearnedFrame:SetTexture("")
 		_G["SpellButton" .. i .. "SlotFrame"]:SetTexture("") -- swirly thing
 		_G["SpellButton" .. i .. "IconTexture"]:SetTexCoord(0.06, 0.94, 0.06, 0.94)
 		button:HookScript("OnDisable", Button_OnDisable)
-		button:HookScript("OnEnable", Button_OnEnable)
+		button:HookScript("OnEnable",  Button_OnEnable)
+		button:HookScript("OnEnter",   Button_OnEnter)
+		button:HookScript("OnLeave",   Button_OnLeave)
 		if isPhanx then
 			button.SpellName:SetFont(FONT, 16)
 		end
