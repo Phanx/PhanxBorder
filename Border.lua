@@ -7,7 +7,7 @@
 
 local BORDER_SIZE = 12
 local BORDER_COLOR = { r = 0.47, g = 0.47, b = 0.47, a = 1 }
-local BORDER_TEXTURE = [[Interface\AddOns\PhanxBorder\Textures\SimpleSquare]] -- Border
+local BORDER_TEXTURE = "Interface\\AddOns\\Masque_Cainyx\\Textures\\NormalRAVEN" -- [[Interface\AddOns\PhanxBorder\Textures\SimpleSquare]] -- Border
 local BORDER_LAYER = "ARTWORK"
 
 ------------------------------------------------------------------------
@@ -71,14 +71,17 @@ function Addon.AddBorder(f, size, inset, bgControl, ...)
 		t[i], t[point] = tx, tx
 	end
 
-	t.TOPLEFT:SetTexCoord(0, 1/3, 0, 1/3)
-	t.TOP:SetTexCoord(1/3, 2/3, 0, 1/3)
-	t.TOPRIGHT:SetTexCoord(2/3, 1, 0, 1/3)
-	t.RIGHT:SetTexCoord(2/3, 1, 1/3, 2/3)
-	t.BOTTOMRIGHT:SetTexCoord(2/3, 1, 2/3, 1)
-	t.BOTTOM:SetTexCoord(1/3, 2/3, 2/3, 1)
-	t.BOTTOMLEFT:SetTexCoord(0, 1/3, 2/3, 1)
-	t.LEFT:SetTexCoord(0, 1/3, 1/3, 2/3)
+	local ONETHIRD = 12/64 -- 1/3
+	local TWOTHIRDS = 52/64 -- 2/3
+
+	t.TOPLEFT:SetTexCoord(0, ONETHIRD, 0, ONETHIRD)
+	t.TOP:SetTexCoord(ONETHIRD, TWOTHIRDS, 0, ONETHIRD)
+	t.TOPRIGHT:SetTexCoord(TWOTHIRDS, 1, 0, ONETHIRD)
+	t.RIGHT:SetTexCoord(TWOTHIRDS, 1, ONETHIRD, TWOTHIRDS)
+	t.BOTTOMRIGHT:SetTexCoord(TWOTHIRDS, 1, TWOTHIRDS, 1)
+	t.BOTTOM:SetTexCoord(ONETHIRD, TWOTHIRDS, TWOTHIRDS, 1)
+	t.BOTTOMLEFT:SetTexCoord(0, ONETHIRD, TWOTHIRDS, 1)
+	t.LEFT:SetTexCoord(0, ONETHIRD, ONETHIRD, TWOTHIRDS)
 
 	t.TOP:SetPoint("TOPLEFT", t.TOPLEFT, "TOPRIGHT")
 	t.TOP:SetPoint("TOPRIGHT", t.TOPRIGHT, "TOPLEFT")
@@ -114,13 +117,14 @@ function Addon.AddBorder(f, size, inset, bgControl, ...)
 			f:SetBackdropColor(r, g, b, a)
 		end
 
-		if bgControl then
+		if bgControl == true then
 			f.SetBackdrop = noop
 			f.SetBackdropColor = noop
 			f.SetBackdropBorderColor = noop
-		else
+		elseif bgControl == nil then
 			f.GetBackdropBorderColor = f.GetBorderColor
 			f.SetBackdropBorderColor = f.SetBorderColor
+		-- false: do not touch methods, for use on secure stuff
 		end
 	end
 
@@ -176,7 +180,7 @@ function prototype:SetBorderSize(size, dL, dR, dT, dB)
 		t[i]:SetSize(size, size)
 	end
 
-	local offset = floor(size * 7 / 16 + 0.5) -- floor(size * 0.2 + 0.5)
+	local offset = floor(size * 8 / 12 + 0.5) -- floor(size * 7 / 16 + 0.5) -- floor(size * 0.2 + 0.5)
 	dL = offset - dL
 	dR = offset - dR
 	dT = offset - dT
