@@ -30,8 +30,7 @@ local function ColorByClass(frame, class)
 	if not frame.__PhanxBorder then
 		AddBorder(frame)
 	end
-
-	local color = (CUSTOM_CLASS_COLORS or RAID_CLASS_COLORS)[class or PLAYER_CLASS]
+	local color = (CUSTOM_CLASS_COLORS or RAID_CLASS_COLORS)[class and class ~= true or PLAYER_CLASS]
 	frame:SetBorderColor(color.r, color.g, color.b)
 end
 Addon.ColorByClass = ColorByClass
@@ -40,12 +39,9 @@ local function ColorByItemQuality(frame, quality, link)
 	if not frame.__PhanxBorder then
 		AddBorder(frame)
 	end
-
-	if not quality then
-		local _
-		_, _, quality = GetItemInfo(link or 0)
+	if link and not quality then
+		link, link, quality = GetItemInfo(link)
 	end
-
 	if quality and quality > 1 then
 		local color = ITEM_QUALITY_COLORS[quality]
 		frame:SetBorderColor(color.r, color.g, color.b)
@@ -55,6 +51,36 @@ local function ColorByItemQuality(frame, quality, link)
 	end
 end
 Addon.ColorByItemQuality = ColorByItemQuality
+
+------------------------------------------------------------------------
+
+local AddBorderToItemButton
+do
+	local function IconBorder_Hide(self)
+		self:GetParent():SetBorderColor()
+	end
+	local function IconBorder_SetVertexColor(self, r, g, b)
+		self:GetParent():SetBorderColor(r, g, b)
+	end
+	local function Button_OnLeave(self)
+		if self.IconBorder:IsShown() then
+			self:SetBorderColor(self.IconBorder:GetVertexColor())
+		else
+			self:SetBorderColor()
+		end
+	end
+	function AddBorderToItemButton(button)
+		if button.__PhanxBorder then return end
+		if not button.icon then return print(button:GetName(), "is not an item button!") end
+		AddBorder(button, nil, 1)
+		button.icon:SetTexCoord(0.04, 0.96, 0.04, 0.96)
+		button.IconBorder:SetTexture("")
+		hooksecurefunc(button.IconBorder, "Hide", IconBorder_Hide)
+		hooksecurefunc(button.IconBorder, "SetVertexColor", IconBorder_SetVertexColor)
+		button:HookScript("OnEnter", ColorByClass)
+		button:HookScript("OnLeave", Button_OnLeave)
+	end
+end
 
 ------------------------------------------------------------------------
 
@@ -162,17 +188,17 @@ tinsert(applyFuncs, function()
 		["MerchantRepairAllButton"] = 3,
 		["MerchantBuyBackItemItemButton"] = 1,
 
-		["PrimaryProfession1SpellButtonBottom"] = 3,
-		["PrimaryProfession1SpellButtonTop"] = 3,
-		["PrimaryProfession2SpellButtonBottom"] = 3,
-		["PrimaryProfession2SpellButtonTop"] = 3,
-		["SecondaryProfession1SpellButtonLeft"] = 3,
+		["PrimaryProfession1SpellButtonBottom"]  = 3,
+		["PrimaryProfession1SpellButtonTop"]     = 3,
+		["PrimaryProfession2SpellButtonBottom"]  = 3,
+		["PrimaryProfession2SpellButtonTop"]     = 3,
+		["SecondaryProfession1SpellButtonLeft"]  = 3,
 		["SecondaryProfession1SpellButtonRight"] = 3,
-		["SecondaryProfession2SpellButtonLeft"] = 3,
+		["SecondaryProfession2SpellButtonLeft"]  = 3,
 		["SecondaryProfession2SpellButtonRight"] = 3,
-		["SecondaryProfession3SpellButtonLeft"] = 3,
+		["SecondaryProfession3SpellButtonLeft"]  = 3,
 		["SecondaryProfession3SpellButtonRight"] = 3,
-		["SecondaryProfession4SpellButtonLeft"] = 3,
+		["SecondaryProfession4SpellButtonLeft"]  = 3,
 		["SecondaryProfession4SpellButtonRight"] = 3,
 	}) do
 		--print("Adding border to", frame)
@@ -203,18 +229,16 @@ tinsert(applyFuncs, function()
 		local name = self:GetName()
 		for slot = 1, self.size do
 			local button = _G[name.."Item"..slot]
-			local link = GetContainerItemLink(bag, slot)
-			ColorByItemQuality(button, nil, link)
+			AddBorderToItemButton(button)
 		end
 	end)
 
 	---------------------------------------------------------------------
 	--	Bank
 	---------------------------------------------------------------------
-
+	-- TODO: use a better function?
 	hooksecurefunc("BankFrameItemButton_Update", function(button)
-		local link = GetContainerItemLink(BANK_CONTAINER, button:GetID())
-		ColorByItemQuality(button, nil, link)
+		AddBorderToItemButton(button)
 	end)
 
 	---------------------------------------------------------------------
@@ -250,18 +274,21 @@ tinsert(applyFuncs, function()
 	select(10, CharacterMainHandSlot:GetRegions()):SetTexture("")
 	select(10, CharacterSecondaryHandSlot:GetRegions()):SetTexture("")
 
+	hooksecurefunc("PaperDollItemSlotButton_Update", AddBorderToItemButton)
+
+	--[[
 	local function ColorPaperDollItemSlot(self)
 		if not self.__PhanxBorder then return end
 		local item = GetInventoryItemID("player", self:GetID())
 		ColorByItemQuality(self, nil, item)
 	end
-
 	hooksecurefunc("PaperDollItemSlotButton_Update", ColorPaperDollItemSlot)
 	hooksecurefunc("PaperDollItemSlotButton_OnLeave", ColorPaperDollItemSlot)
 	hooksecurefunc("PaperDollItemSlotButton_OnEnter", function(self)
 		if not self.__PhanxBorder then return end
 		ColorByClass(self)
 	end)
+	]]
 
 	-- Equipment flyouts
 
@@ -272,6 +299,8 @@ tinsert(applyFuncs, function()
 		end
 	end)
 
+	hooksecurefunc("EquipmentFlyout_DisplayButton", AddBorderToItemButton)
+	--[[
 	hooksecurefunc("EquipmentFlyout_DisplayButton", function(self)
 		if not button.__PhanxBorder then
 			AddBorder(self)
@@ -290,6 +319,7 @@ tinsert(applyFuncs, function()
 
 		self:SetBorderColor()
 	end)
+	]]
 
 	-- Equipment manager
 
@@ -320,26 +350,26 @@ tinsert(applyFuncs, function()
 	-- TODO: test
 	hooksecurefunc("LootFrame_UpdateButton", function(index)
 		local button = _G["LootButton"..index]
-		ColorByItemQuality(button, button:IsEnabled() and button.quality)
+		AddButtonToItemBorder(button)
+		--ColorByItemQuality(button, button:IsEnabled() and button.quality)
 	end)
 
 	---------------------------------------------------------------------
 	-- Mailbox
 	---------------------------------------------------------------------
 
-	local mailInboxButtons, mailOpenButtons, mailSendButtons = {}, {}, {}
-
 	for i = 1, INBOXITEMS_TO_DISPLAY do
 		local button = _G["MailItem"..i.."Button"]
-		mailInboxButtons[i] = button
-		AddBorder(button)
-		--_G["MailItem"..i.."ButtonIcon"]:SetTexCoord()
+		local slot, icon = button:GetRegions()
+		slot:SetTexture("")
+		icon:SetTexCoord(0.04, 0.96, 0.04, 0.96)
+		AddBorder(button, nil, 1)
+		button:SetBorderLayer("OVERLAY")
 	end
 
 	hooksecurefunc("InboxFrame_Update", function()
 		local numItems = GetInboxNumItems()
 		local index = ((InboxFrame.pageNum - 1) * INBOXITEMS_TO_DISPLAY) + 1
-
 		for i = 1, INBOXITEMS_TO_DISPLAY do
 			local best = 0
 			if index <= numItems then
@@ -347,47 +377,58 @@ tinsert(applyFuncs, function()
 					-- GetInboxItem is bugged since 2.3.3 (lol) and always returns quality -1
 					-- local _, _, _, quality = GetInboxItem(index, j)
 					local link = GetInboxItemLink(index, j)
-					local _, _, quality = GetItemInfo(link or 0)
-					best = quality and quality > best and quality or best
+					if link then
+						local _, _, quality = GetItemInfo(link)
+						best = quality and quality > best and quality or best
+					end
 				end
 			end
-			ColorByItemQuality(mailInboxButtons[i], best)
+			ColorByItemQuality(_G["MailItem"..i.."Button"], best)
 			index = index + 1
 		end
 	end)
 
+	-------------------
+	-- Received mail
+	-------------------
+
 	for i = 1, ATTACHMENTS_MAX_RECEIVE do
 		local button = _G["OpenMailAttachmentButton"..i]
-		mailOpenButtons[i] = button
-		AddBorder(button)
+		_G["OpenMailAttachmentButton"..i.."NormalTexture"]:SetTexture("") -- ugly border thing
+		AddBorderToItemButton(button)
 	end
 
-	hooksecurefunc("OpenMail_Update", function()
-		if not InboxFrame.openMailID then return end
+	AddBorder(OpenMailLetterButton, nil, 2)
 
-		for i = 1, ATTACHMENTS_MAX_RECEIVE do
-			-- GetInboxItem is bugged since 2.3.3 (lol) and always returns quality -1
-			-- local _, _, _, quality = GetInboxItem(InboxFrame.openMailID, i)
-			local link = GetInboxItemLink(InboxFrame.openMailID, i)
-			ColorByItemQuality(mailOpenButtons[i], nil, link)
-		end
-	end)
+	------------------
+	-- Sending mail
+	------------------
+
+	local function SendMailAttachment_OnLeave(self)
+		local link = GetSendMailItemLink(self:GetID())
+		ColorByItemQuality(self, nil, link)
+	end
 
 	for i = 1, ATTACHMENTS_MAX_SEND do
 		local button = _G["SendMailAttachment"..i]
-		mailSendButtons[i] = button
+		AddBorder(button, nil, 1)
 		button:GetRegions():SetTexCoord(0, 0.62, 0, 0.61) -- empty slot texture
-		AddBorder(button)
+		button:HookScript("OnEnter", ColorByClass)
+		button:HookScript("OnLeave", SendMailAttachment_OnLeave)
 	end
 
 	hooksecurefunc("SendMailFrame_Update", function()
 		if not SendMailFrame:IsShown() then return end
-
 		for i = 1, ATTACHMENTS_MAX_SEND do
 			-- GetSendMailItem is bugged since 2.3.3 (lol) and always returns quality -1
 			-- local _, _, quality = GetSendMailItem(i)
+			local button = _G["SendMailAttachment"..i]
 			local link = GetSendMailItemLink(i)
-			ColorByItemQuality(mailSendButtons[i], nil, link)
+			ColorByItemQuality(button, nil, link)
+			local icon = button:GetNormalTexture()
+			if icon then
+				icon:SetTexCoord(0.04, 0.96, 0.04, 0.96)
+			end
 		end
 	end)
 
@@ -397,6 +438,15 @@ tinsert(applyFuncs, function()
 
 	MerchantBuyBackItemNameFrame:SetTexture("")
 
+	for i = 1, MERCHANT_ITEMS_PER_PAGE do
+		AddBorderToItemButton(_G["MerchantItem"..i.."ItemButton"])
+	end
+
+	for i = 1, BUYBACK_ITEMS_PER_PAGE do
+		AddBorderToItemButton(_G["MerchantItem"..i.."ItemButton"])
+	end
+
+	--[[
 	hooksecurefunc("MerchantFrame_Update", function()
 		if not MerchantFrame:IsShown() then return end
 		if MerchantFrame.selectedTab == 1 then
@@ -415,6 +465,7 @@ tinsert(applyFuncs, function()
 			end
 		end
 	end)
+	]]
 
 	---------------------------------------------------------------------
 	-- Pet stable
@@ -485,10 +536,19 @@ tinsert(applyFuncs, function()
 	-- Spellbook
 	---------------------------------------------------------------------
 
-	for i = 1, 5 do
-		local tab = _G["SpellBookSkillLineTab"..i]
+	local function SkinTab(tab)
+		if tab.__PhanxBorder then return end
 		AddBorder(tab)
+
 		tab:GetNormalTexture():SetTexCoord(0.06, 0.94, 0.06, 0.94)
+		tab:GetNormalTexture():SetDrawLayer("BORDER", 0)
+
+		tab:GetCheckedTexture():SetDrawLayer("BORDER", 1)
+		tab:GetCheckedTexture():SetPoint("TOPLEFT", -2, 2)
+		tab:GetCheckedTexture():SetPoint("BOTTOMRIGHT", 2, -2)
+
+		tab:GetHighlightTexture():SetPoint("TOPLEFT", -3, 3)
+		tab:GetHighlightTexture():SetPoint("BOTTOMRIGHT", 3, -3)
 	end
 
 	local function Button_OnDisable(self)
@@ -521,11 +581,15 @@ tinsert(applyFuncs, function()
 		end
 	end
 
+	for i = 1, 5 do
+		SkinTab(_G["SpellBookSkillLineTab"..i])
+	end
+
 	hooksecurefunc("SpellBook_UpdateCoreAbilitiesTab", function()
 		for i = 1, #SpellBookCoreAbilitiesFrame.Abilities do
 			local button = SpellBookCoreAbilitiesFrame.Abilities[i]
 			if not button.__PhanxBorder then
-				AddBorder(button)
+				AddBorder(button, nil, 1)
 				button.iconTexture:SetTexCoord(0.05, 0.95, 0.05, 0.95)
 				button.FutureTexture:SetTexture("")
 				select(3, button:GetRegions()):SetTexture("") -- swirly thing
@@ -535,6 +599,9 @@ tinsert(applyFuncs, function()
 					button.Name:SetFont(FONT, 16)
 				end
 			end
+		end
+		for i = 1, #SpellBookCoreAbilitiesFrame.SpecTabs do
+			SkinTab(SpellBookCoreAbilitiesFrame.SpecTabs[i])
 		end
 	end)
 
@@ -549,10 +616,11 @@ tinsert(applyFuncs, function()
 	---------------------------------------------------------------------
 
 	for i = 1, 7 do
-		AddBorder(_G["TradePlayerItem"..i.."ItemButton"])
-		AddBorder(_G["TradeRecipientItem"..i.."ItemButton"])
+		AddBorderToItemButton(_G["TradePlayerItem"..i.."ItemButton"])
+		AddBorderToItemButton(_G["TradeRecipientItem"..i.."ItemButton"])
 	end
 
+	--[[
 	hooksecurefunc("TradeFrame_UpdatePlayerItem", function(i)
 		local link = GetTradePlayerItemLink(i)
 		ColorByItemQuality(_G["TradePlayerItem"..i.."ItemButton"], nil, link)
@@ -562,6 +630,7 @@ tinsert(applyFuncs, function()
 		local _, _, _, quality = GetTradeTargetItemInfo(i)
 		ColorByItemQuality(_G["TradeRecipientItem"..i.."ItemButton"], quality)
 	end)
+	]]
 
 	---------------------------------------------------------------------
 	-- Done!
@@ -607,7 +676,7 @@ end)
 ------------------------------------------------------------------------
 --	Blizzard_GuildBankUI
 ------------------------------------------------------------------------
-
+-- TODO: use AddBorderToItemButton ?
 tinsert(applyFuncs, function()
 	if not GuildBankFrame then return end
 
@@ -631,15 +700,19 @@ end)
 ------------------------------------------------------------------------
 --	Blizzard_InspectUI
 ------------------------------------------------------------------------
--- TODO: test
+
 tinsert(applyFuncs, function()
 	if not InspectPaperDollItemSlotButton_Update then return end
 
 	hooksecurefunc("InspectPaperDollItemSlotButton_Update", function(button)
+		AddBorderToItemButton(button)
+	end)
+--[[
+	hooksecurefunc("InspectPaperDollItemSlotButton_Update", function(button)
 		local item = GetInventoryItemID(InspectFrame.unit, button:GetID())
 		ColorByItemQuality(button, nil, item)
 	end)
-
+]]
 	return true
 end)
 
@@ -671,6 +744,8 @@ tinsert(applyFuncs, function()
 		local selectedType, selectedIndex = C_PetBattles.GetSelectedAction()
 		self.SelectedHighlight:SetShown(selectedType and selectedType == actionType and (not actionIndex or selectedIndex == actionIndex))
 	end)
+
+	-- TODO: Fix checked texture sticking on switch button after use
 
 	return true
 end)
@@ -761,6 +836,27 @@ tinsert(applyFuncs, function()
 		button.iconBorder.SetVertexColor = IconBorder_SetVertexColor
 		button.iconBorder.Hide = IconBorder_SetVertexColor
 	end
+
+	-------------
+	-- Toy Box
+	-------------
+
+	for i = 1, 18 do
+		local button = _G["ToySpellButton"..i]
+		AddBorder(button)
+		button:SetBorderInsets(5, 5, 3, 7)
+		_G["ToySpellButton"..i.."SlotFrameCollected"]:SetTexture("")
+		_G["ToySpellButton"..i.."SlotFrameUncollected"]:SetTexture("")
+		_G["ToySpellButton"..i.."SlotFrameUncollectedInnerGlow"]:SetTexture("")
+	end
+
+	hooksecurefunc("ToySpellButton_UpdateButton", function(self)
+		local name = self:GetName()
+		_G[name.."IconTextureUncollected"]:SetAlpha(0.5)
+		if self.itemID then
+			ColorByQuality(self, nil, self.itemID)
+		end
+	end)
 
 	return true
 end)
