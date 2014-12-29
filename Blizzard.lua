@@ -35,7 +35,7 @@ local function ColorByClass(frame, class)
 end
 Addon.ColorByClass = ColorByClass
 
-local function ColorByItemQuality(frame, quality, link)
+local function ColorByQuality(frame, quality, link)
 	if not frame.__PhanxBorder then
 		AddBorder(frame)
 	end
@@ -50,7 +50,7 @@ local function ColorByItemQuality(frame, quality, link)
 		frame:SetBorderColor()
 	end
 end
-Addon.ColorByItemQuality = ColorByItemQuality
+Addon.ColorByQuality = ColorByQuality
 
 ------------------------------------------------------------------------
 
@@ -280,7 +280,7 @@ tinsert(applyFuncs, function()
 	local function ColorPaperDollItemSlot(self)
 		if not self.__PhanxBorder then return end
 		local item = GetInventoryItemID("player", self:GetID())
-		ColorByItemQuality(self, nil, item)
+		ColorByQuality(self, nil, item)
 	end
 	hooksecurefunc("PaperDollItemSlotButton_Update", ColorPaperDollItemSlot)
 	hooksecurefunc("PaperDollItemSlotButton_OnLeave", ColorPaperDollItemSlot)
@@ -313,7 +313,7 @@ tinsert(applyFuncs, function()
 			local player, bank, bags, _, slot, bag = EquipmentManager_UnpackLocation(location)
 			if player or bank or bags then
 				local link = bags and GetContainerItemID(bag, slot) or GetInventoryItemID("player", slot)
-				return ColorByItemQuality(self, nil, link)
+				return ColorByQuality(self, nil, link)
 			end
 		end
 
@@ -351,7 +351,7 @@ tinsert(applyFuncs, function()
 	hooksecurefunc("LootFrame_UpdateButton", function(index)
 		local button = _G["LootButton"..index]
 		AddButtonToItemBorder(button)
-		--ColorByItemQuality(button, button:IsEnabled() and button.quality)
+		--ColorByQuality(button, button:IsEnabled() and button.quality)
 	end)
 
 	---------------------------------------------------------------------
@@ -383,7 +383,7 @@ tinsert(applyFuncs, function()
 					end
 				end
 			end
-			ColorByItemQuality(_G["MailItem"..i.."Button"], best)
+			ColorByQuality(_G["MailItem"..i.."Button"], best)
 			index = index + 1
 		end
 	end)
@@ -406,7 +406,7 @@ tinsert(applyFuncs, function()
 
 	local function SendMailAttachment_OnLeave(self)
 		local link = GetSendMailItemLink(self:GetID())
-		ColorByItemQuality(self, nil, link)
+		ColorByQuality(self, nil, link)
 	end
 
 	for i = 1, ATTACHMENTS_MAX_SEND do
@@ -424,7 +424,7 @@ tinsert(applyFuncs, function()
 			-- local _, _, quality = GetSendMailItem(i)
 			local button = _G["SendMailAttachment"..i]
 			local link = GetSendMailItemLink(i)
-			ColorByItemQuality(button, nil, link)
+			ColorByQuality(button, nil, link)
 			local icon = button:GetNormalTexture()
 			if icon then
 				icon:SetTexCoord(0.04, 0.96, 0.04, 0.96)
@@ -453,15 +453,15 @@ tinsert(applyFuncs, function()
 			for i = 1, MERCHANT_ITEMS_PER_PAGE do
 				local index = i + ((MerchantFrame.page - 1) * MERCHANT_ITEMS_PER_PAGE)
 				local link = GetMerchantItemLink(index)
-				ColorByItemQuality(_G["MerchantItem"..i.."ItemButton"], nil, link)
+				ColorByQuality(_G["MerchantItem"..i.."ItemButton"], nil, link)
 			end
 
 			local link = GetBuybackItemLink(GetNumBuybackItems())
-			ColorByItemQuality(MerchantBuyBackItemItemButton, nil, link)
+			ColorByQuality(MerchantBuyBackItemItemButton, nil, link)
 		else
 			for i = 1, BUYBACK_ITEMS_PER_PAGE do
 				local link = GetBuybackItemLink(i)
-				ColorByItemQuality(_G["MerchantItem"..i.."ItemButton"], nil, link)
+				ColorByQuality(_G["MerchantItem"..i.."ItemButton"], nil, link)
 			end
 		end
 	end)
@@ -512,7 +512,7 @@ tinsert(applyFuncs, function()
 		for i = 1, MAX_NUM_ITEMS do
 			local f = _G["QuestInfoItem"..i]
 			local link = f.type and (QuestInfoFrame.questLog and GetQuestLogItemLink or GetQuestItemLink)(f.type, f:GetID())
-			ColorByItemQuality(f, nil, link)
+			ColorByQuality(f, nil, link)
 			f:SetBorderInsets(2, 109, 2, 3)
 		end
 	end)
@@ -528,7 +528,7 @@ tinsert(applyFuncs, function()
 		for i = 1, MAX_REQUIRED_ITEMS do
 			local f = _G["QuestProgressItem"..i]
 			local link = f.type and GetQuestItemLink(f.type, f:GetID())
-			ColorByItemQuality(f, nil, link)
+			ColorByQuality(f, nil, link)
 		end
 	end)
 ]]
@@ -623,12 +623,12 @@ tinsert(applyFuncs, function()
 	--[[
 	hooksecurefunc("TradeFrame_UpdatePlayerItem", function(i)
 		local link = GetTradePlayerItemLink(i)
-		ColorByItemQuality(_G["TradePlayerItem"..i.."ItemButton"], nil, link)
+		ColorByQuality(_G["TradePlayerItem"..i.."ItemButton"], nil, link)
 	end)
 
 	hooksecurefunc("TradeFrame_UpdateTargetItem", function(i)
 		local _, _, _, quality = GetTradeTargetItemInfo(i)
-		ColorByItemQuality(_G["TradeRecipientItem"..i.."ItemButton"], quality)
+		ColorByQuality(_G["TradeRecipientItem"..i.."ItemButton"], quality)
 	end)
 	]]
 
@@ -690,7 +690,7 @@ tinsert(applyFuncs, function()
 			local col = ceil((i - 0.5) / NUM_SLOTS_PER_GUILDBANK_GROUP)
 			local button = _G["GuildBankColumn"..col.."Button"..row]
 			local link = GetGuildBankItemLink(tab, i)
-			ColorByItemQuality(button, nil, link)
+			ColorByQuality(button, nil, link)
 		end
 	end)
 
@@ -710,7 +710,7 @@ tinsert(applyFuncs, function()
 --[[
 	hooksecurefunc("InspectPaperDollItemSlotButton_Update", function(button)
 		local item = GetInventoryItemID(InspectFrame.unit, button:GetID())
-		ColorByItemQuality(button, nil, item)
+		ColorByQuality(button, nil, item)
 	end)
 ]]
 	return true
@@ -900,12 +900,12 @@ tinsert(applyFuncs, function()
 
 	hooksecurefunc("TradeSkillFrame_SetSelection", function(i)
 		local link = GetTradeSkillItemLink(i)
-		ColorByItemQuality(TradeSkillSkillIcon, nil, link)
+		ColorByQuality(TradeSkillSkillIcon, nil, link)
 
 		for j = 1, GetTradeSkillNumReagents(i) do
 			local button = _G["TradeSkillReagent"..j]
 			local link = GetTradeSkillReagentItemLink(i, j)
-			ColorByItemQuality(button, nil, link)
+			ColorByQuality(button, nil, link)
 			button:SetBorderInsets(0, 107, 0, 3)
 		end
 	end)
@@ -925,19 +925,19 @@ tinsert(applyFuncs, function()
 			for i = 1, 9 do
 				local button = _G["VoidStorageDepositButton"..i]
 				local item = GetVoidTransferDepositInfo(i)
-				ColorByItemQuality(button, nil, item)
+				ColorByQuality(button, nil, item)
 			end
 		end
 		if doContents then
 			for i = 1, 9 do
 				local button = _G["VoidStorageWithdrawButton"..i]
 				local item = GetVoidTransferWithdrawalInfo(i)
-				ColorByItemQuality(button, nil, item)
+				ColorByQuality(button, nil, item)
 			end
 			for i = 1, 80 do
 				local button = _G["VoidStorageStorageButton"..i]
 				local item = GetVoidItemInfo(i)
-				ColorByItemQuality(button, nil, item)
+				ColorByQuality(button, nil, item)
 			end
 		end
 	end)
