@@ -73,6 +73,7 @@ do
 		if button.__PhanxBorder then return end
 		if not button.icon then return print(button:GetName(), "is not an item button!") end
 		AddBorder(button, nil, 1)
+		button:GetNormalTexture():Hide() -- useless extra icon border
 		button.icon:SetTexCoord(0.04, 0.96, 0.04, 0.96)
 		button.IconBorder:SetTexture("")
 		hooksecurefunc(button.IconBorder, "Hide", IconBorder_Hide)
@@ -266,29 +267,29 @@ tinsert(applyFuncs, function()
 		"CharacterSecondaryHandSlot",
 	}) do
 		local f = _G[slot]
-		AddBorder(f, nil, 1)
-		f.IconBorder:SetTexture("")
+		AddBorderToItemButton(f)
+		f:SetBorderInsets(2) -- not enough spacing between buttons for just 1
 		_G[slot.."Frame"]:SetTexture("")
 	end
 
-	select(10, CharacterMainHandSlot:GetRegions()):SetTexture("")
-	select(10, CharacterSecondaryHandSlot:GetRegions()):SetTexture("")
+	select(11, CharacterMainHandSlot:GetRegions()):SetTexture("")
+	select(11, CharacterSecondaryHandSlot:GetRegions()):SetTexture("")
 
-	hooksecurefunc("PaperDollItemSlotButton_Update", AddBorderToItemButton)
-
-	--[[
-	local function ColorPaperDollItemSlot(self)
-		if not self.__PhanxBorder then return end
-		local item = GetInventoryItemID("player", self:GetID())
-		ColorByQuality(self, nil, item)
-	end
-	hooksecurefunc("PaperDollItemSlotButton_Update", ColorPaperDollItemSlot)
-	hooksecurefunc("PaperDollItemSlotButton_OnLeave", ColorPaperDollItemSlot)
-	hooksecurefunc("PaperDollItemSlotButton_OnEnter", function(self)
-		if not self.__PhanxBorder then return end
-		ColorByClass(self)
+	hooksecurefunc("PaperDollItemSlotButton_Update", function(self)
+		-- Despite these buttons having an IconBorder the default UI does not use it;
+		-- fix that oversight so PhanxBorder colors will also work.
+		-- This function doesn't depend on PhanxBorder and will work in any addon.
+		local item = GetInventoryItemLink("player", self:GetID())
+		if not item then return end
+		local _, _, quality = GetItemInfo(item)
+		if quality and quality > 1 then
+			local color = ITEM_QUALITY_COLORS[quality]
+			self.IconBorder:SetVertexColor(color.r, color.g, color.b)
+			self.IconBorder:Show()
+		else
+			self.IconBorder:Hide()
+		end
 	end)
-	]]
 
 	-- Equipment flyouts
 
@@ -300,26 +301,6 @@ tinsert(applyFuncs, function()
 	end)
 
 	hooksecurefunc("EquipmentFlyout_DisplayButton", AddBorderToItemButton)
-	--[[
-	hooksecurefunc("EquipmentFlyout_DisplayButton", function(self)
-		if not button.__PhanxBorder then
-			AddBorder(self)
-			self:SetBorderInsets(1) -- scale is wrong on load
-			self.IconBorder:SetTexture("")
-		end
-
-		local location = self.location
-		if location and location < EQUIPMENTFLYOUT_FIRST_SPECIAL_LOCATION then
-			local player, bank, bags, _, slot, bag = EquipmentManager_UnpackLocation(location)
-			if player or bank or bags then
-				local link = bags and GetContainerItemID(bag, slot) or GetInventoryItemID("player", slot)
-				return ColorByQuality(self, nil, link)
-			end
-		end
-
-		self:SetBorderColor()
-	end)
-	]]
 
 	-- Equipment manager
 
