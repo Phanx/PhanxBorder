@@ -149,13 +149,11 @@ tinsert(applyFuncs, function()
 	local function ItemSlot_OnEnter(button)
 		button.__UpdateBorder = button.UpdateBorder
 		button.UpdateBorder = noop
-
 		ColorByClass(button)
 	end
 	local function ItemSlot_OnLeave(button)
 		button.UpdateBorder = button.__UpdateBorder
 		button.__UpdateBorder = noop
-
 		button:UpdateBorder()
 	end
 
@@ -177,7 +175,7 @@ tinsert(applyFuncs, function()
 	local origBorderSize = {}
 	
 	local function ResizeChildBorders(frame)
-		frame:SetBorderSize(origBorderSize[frame] / (frame:GetSettings().db.frameDB.scale or 1))
+		frame:SetBorderSize()
 		for i = 1, frame:GetNumChildren() do
 			local child = select(i, frame:GetChildren())
 			local slots = child.itemSlots
@@ -195,7 +193,7 @@ tinsert(applyFuncs, function()
 		local frame = Bagnon.frames[id]
 		AddBorder(frame)
 		origBorderSize[frame] = frame:GetBorderSize()
-		frame:SetBorderSize(origBorderSize[frame] / (frame:GetSettings().db.frameDB.scale or 1))
+		frame:SetBorderSize()
 		hooksecurefunc(frame, "UpdateScale", ResizeChildBorders)
 
 		if USE_CLASS_COLOR then
