@@ -73,7 +73,7 @@ do
 		if button.__PhanxBorder then return end
 		if not button.icon then return print(button:GetName(), "is not an item button!") end
 		AddBorder(button, nil, 1)
-		button:GetNormalTexture():Hide() -- useless extra icon border
+		button:GetNormalTexture():SetTexture("") -- useless extra icon border
 		button.icon:SetTexCoord(0.04, 0.96, 0.04, 0.96)
 		button.IconBorder:SetTexture("")
 		hooksecurefunc(button.IconBorder, "Hide", IconBorder_Hide)
@@ -331,7 +331,7 @@ tinsert(applyFuncs, function()
 	-- TODO: test
 	hooksecurefunc("LootFrame_UpdateButton", function(index)
 		local button = _G["LootButton"..index]
-		AddButtonToItemBorder(button)
+		AddBorderToItemButton(button)
 		--ColorByQuality(button, button:IsEnabled() and button.quality)
 	end)
 
