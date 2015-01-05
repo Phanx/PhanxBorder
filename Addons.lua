@@ -173,7 +173,7 @@ tinsert(applyFuncs, function()
 	end
 
 	local origBorderSize = {}
-	
+
 	local function ResizeChildBorders(frame)
 		frame:SetBorderSize()
 		for i = 1, frame:GetNumChildren() do
@@ -543,28 +543,40 @@ end)
 ------------------------------------------------------------------------
 --	PetTracker
 ------------------------------------------------------------------------
---[[
+
 tinsert(applyFuncs, function()
 	if not PetTracker then return end
 	--print("Adding borders to PetTracker")
 
-	-- Add border to tracker bar
+	AddBorder(PetTrackerMapTip1)
+
+	--[[ Add border to tracker bar
 	local bar = PetTracker.Objectives.Bar
 	bar:SetHeight(16)
 	bar.Overlay.BorderLeft:SetTexture("")
 	bar.Overlay.BorderRight:SetTexture("")
 	bar.Overlay.BorderCenter:SetTexture("")
-	AddBorder(bar.Overlay)
+	AddBorder(bar.Overlay)]]
 
 	local EnemyActions = PetTracker.EnemyActions
-	for i = 1, EnemyActions:GetNumChildren() do
-		local button = select(i, EnemyActions:GetChildren())
-		AddBorder(button, nil, 2)
+	local function doEnemyActions()
+		--print("Adding borders to enemy action buttons")
+		for i = 1, #EnemyActions do
+			local button = EnemyActions[i]
+			button:GetNormalTexture():SetTexture("")
+			AddBorder(button, nil, 2)
+		end
+	end
+	if #EnemyActions > 0 then
+		doEnemyActions()
+	else
+		--print("Waiting for enemy action buttons")
+		hooksecurefunc(EnemyActions, "Startup", doEnemyActions)
 	end
 
 	return true
 end)
-]]
+
 ------------------------------------------------------------------------
 --	PetTracker_Broker
 ------------------------------------------------------------------------
