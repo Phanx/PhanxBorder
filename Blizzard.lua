@@ -863,7 +863,7 @@ tinsert(applyFuncs, function()
 		for col = 1, 3 do
 			local button = _G["PlayerTalentFrameTalentsTalentRow"..row.."Talent"..col]
 			AddBorder(button)
-			button:SetBorderInsets(36, 116, 6, 6)
+			button:SetBorderInsets(37, 122, 6, 6)
 		end
 	end
 
