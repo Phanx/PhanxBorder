@@ -139,11 +139,11 @@ tinsert(applyFuncs, function()
 
 	-- TODO: Something to prevent conflicts with Masque?
 	if select(4, GetAddOnInfo("Bagnon_Facade")) then
-		print("WARNING: Bagnon_Facade is enabled. You should disable it!")
+		return print("WARNING: Bagnon_Facade is enabled. You should disable it!")
 	end
 
 	local function ItemSlot_Update(button)
-		button:SetBorderInsets(1) -- fixes scaling issues
+		-- button:SetBorderInsets(1) -- fixes scaling issues
 		button.icon:SetTexCoord(0.03, 0.97, 0.03, 0.97)
 	end
 	local function ItemSlot_OnEnter(button)
@@ -160,7 +160,7 @@ tinsert(applyFuncs, function()
 	local ItemSlot_Create = Bagnon.ItemSlot.Create
 	function Bagnon.ItemSlot:Create()
 		local button = ItemSlot_Create(self)
-		AddBorder(button)
+		AddBorder(button, nil, 1)
 		button:GetNormalTexture():SetTexture("")
 		button:GetHighlightTexture():SetTexture("")
 		--button.icon:SetTexCoord(0.04, 0.96, 0.04, 0.96)
@@ -304,11 +304,11 @@ end)
 ------------------------------------------------------------------------
 --	CoolLine
 ------------------------------------------------------------------------
---[==[
+
 tinsert(applyFuncs, function()
 	if CoolLine then
 		-- print("Adding border to CoolLine")
-		AddBorder(CoolLine, nil, -1)
+		AddBorder(CoolLine)
 --[[
 		function CoolLine_AddBorders()
 			-- print("Adding border to CoolLine icons")
@@ -334,7 +334,7 @@ tinsert(applyFuncs, function()
 		return true
 	end
 end)
-]==]
+
 ------------------------------------------------------------------------
 --	DockingStation
 ------------------------------------------------------------------------
