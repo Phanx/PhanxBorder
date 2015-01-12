@@ -72,7 +72,7 @@ do
 	function AddBorderToItemButton(button)
 		if button.__PhanxBorder then return end
 		if not button.icon then return print(button:GetName(), "is not an item button!") end
-		AddBorder(button, nil, 1)
+		AddBorder(button) -- , nil, 1)
 		button:GetNormalTexture():SetTexture("") -- useless extra icon border
 		button.icon:SetTexCoord(0.04, 0.96, 0.04, 0.96)
 		button.IconBorder:SetTexture("")
