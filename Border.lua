@@ -1,14 +1,26 @@
 --[[--------------------------------------------------------------------
 	PhanxBorder
 	Adds shiny borders to things.
-	Copyright (c) 2008-2014 Phanx <addons@phanx.net>. All rights reserved.
+	Copyright (c) 2008-2015 Phanx <addons@phanx.net>. All rights reserved.
 	https://github.com/Phanx/PhanxBorder
 ----------------------------------------------------------------------]]
 
-local BORDER_SIZE = 12
+local BORDER_SIZE  = 14/18 -- PERCENT
 local BORDER_COLOR = { r = 0.47, g = 0.47, b = 0.47, a = 1 }
-local BORDER_TEXTURE = "Interface\\AddOns\\Masque_Cainyx\\Textures\\NormalRAVEN" -- [[Interface\AddOns\PhanxBorder\Textures\SimpleSquare]] -- Border
 local BORDER_LAYER = "ARTWORK"
+
+--[[ SimpleSquare ]]
+local BORDER_TEXTURE = "Interface\\AddOns\\Masque_SimpleSquare\\Textures\\ModBorder"
+local TEXTURE_SIZE   = 64
+local CORNER_SIZE    = 18
+local OFFSET_SIZE    = 9
+
+--[[ Cainyx
+local BORDER_TEXTURE = "Interface\\AddOns\\Masque_Cainyx\\Textures\\NormalRAVEN"
+local TEXTURE_SIZE   = 64
+local CORNER_SIZE    = 12
+local OFFSET_SIZE    =  8
+]]
 
 ------------------------------------------------------------------------
 --	GTFO.
@@ -71,8 +83,8 @@ function Addon.AddBorder(f, size, inset, bgControl, ...)
 		t[i], t[point] = tx, tx
 	end
 
-	local ONETHIRD = 12/64 -- 1/3
-	local TWOTHIRDS = 52/64 -- 2/3
+	local ONETHIRD = CORNER_SIZE / TEXTURE_SIZE
+	local TWOTHIRDS = (TEXTURE_SIZE - CORNER_SIZE) / TEXTURE_SIZE
 
 	t.TOPLEFT:SetTexCoord(0, ONETHIRD, 0, ONETHIRD)
 	t.TOP:SetTexCoord(ONETHIRD, TWOTHIRDS, 0, ONETHIRD)
@@ -131,7 +143,7 @@ function Addon.AddBorder(f, size, inset, bgControl, ...)
 	do
 		local icon = f.Icon or f.icon
 		if type(icon) == "table" and icon.SetTexCoord then
-			icon:SetTexCoord(0.06, 0.94, 0.06, 0.94)
+			icon:SetTexCoord(0.07, 0.93, 0.07, 0.93)
 		end
 	end
 
@@ -155,11 +167,18 @@ end
 function prototype:SetBorderSize(size, dL, dR, dT, dB)
 	local border = self.__PhanxBorder
 	local insets = border.insets
+	--print("SetBorderSize", size, dL, dR, dT, dB)
 
 	if not size then
 		size = BORDER_SIZE
+	elseif size > 1 then
+		size = (size / CORNER_SIZE)
 	end
 	border.size = size
+	--print("   scale:", size)
+
+	size = size * CORNER_SIZE
+	--print("   size:", size)
 
 	if not dL then
 		dL, dR, dT, dB = insets.left or 0, insets.right or 0, insets.top or 0, insets.bottom or 0
@@ -180,7 +199,7 @@ function prototype:SetBorderSize(size, dL, dR, dT, dB)
 		t[i]:SetSize(size, size)
 	end
 
-	local offset = floor(size * 8 / 12 + 0.5) -- floor(size * 7 / 16 + 0.5) -- floor(size * 0.2 + 0.5)
+	local offset = floor(size * (OFFSET_SIZE / CORNER_SIZE) + 0.5)
 	dL = offset - dL
 	dR = offset - dR
 	dT = offset - dT
@@ -196,13 +215,13 @@ end
 
 function prototype:GetBorderInsets()
 	local border = self.__PhanxBorder
-	local offsets = border.offsets
-	return offsets.left, offsets.right, offsets.top, offsets.bottom
+	local insets = border.insets
+	return insets.left, insets.right, insets.top, insets.bottom
 end
 
 function prototype:SetBorderInsets(dL, dR, dT, dB)
 	local border = self.__PhanxBorder
-	return prototype.SetBorderSize(self, border.size, dL, dR, dT, dB)
+	return prototype.SetBorderSize(self, nil, dL, dR, dT, dB)
 end
 
 ------------------------------------------------------------------------
