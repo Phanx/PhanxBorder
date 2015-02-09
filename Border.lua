@@ -5,7 +5,7 @@
 	https://github.com/Phanx/PhanxBorder
 ----------------------------------------------------------------------]]
 
-local BORDER_SIZE  = 14/18 -- PERCENT
+local BORDER_SIZE  = 12/18 -- PERCENT
 local BORDER_COLOR = { r = 0.47, g = 0.47, b = 0.47, a = 1 }
 local BORDER_LAYER = "ARTWORK"
 
