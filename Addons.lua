@@ -189,8 +189,10 @@ tinsert(applyFuncs, function()
 	end
 
 	hooksecurefunc(Bagnon, "CreateFrame", function(Bagnon, id)
-		--print("Adding border to Bagnon", id, "frame")
 		local frame = Bagnon.frames[id]
+		if origBorderSize[frame] then return end
+		--print("Adding border to Bagnon", id)
+
 		AddBorder(frame)
 		origBorderSize[frame] = frame:GetBorderSize()
 		frame:SetBorderSize()
@@ -309,6 +311,7 @@ tinsert(applyFuncs, function()
 	if CoolLine then
 		-- print("Adding border to CoolLine")
 		AddBorder(CoolLine)
+		CoolLine:SetBorderLayer("OVERLAY")
 --[[
 		function CoolLine_AddBorders()
 			-- print("Adding border to CoolLine icons")
