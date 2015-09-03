@@ -24,8 +24,8 @@ local eventFrame = CreateFrame("Frame")
 eventFrame:RegisterEvent("PLAYER_LOGIN")
 eventFrame:SetScript("OnEvent", function(self, event)
 	for i, func in pairs(applyFuncs) do
-		if applyFuncs[i]() then
-			tremove(applyFuncs, i)
+		if not func() then -- return true to keep trying
+			applyFuncs[i] = nil
 		end
 	end
 	if #applyFuncs == 0 then
@@ -133,7 +133,7 @@ end)
 ------------------------------------------------------------------------
 --	Bagnon
 ------------------------------------------------------------------------
-
+--[==[
 tinsert(applyFuncs, function()
 	if not Bagnon then return end
 
@@ -209,39 +209,57 @@ tinsert(applyFuncs, function()
 
 	return true
 end)
-
+]==]
+------------------------------------------------------------------------
+-- BattlePetBreedID
+------------------------------------------------------------------------
+tinsert(applyFuncs, function()
+	if not BPBID_SetBreedTooltip then return true end
+	--print("Adding border to BattlePetBreedID")
+	hooksecurefunc("BPBID_SetBreedTooltip", function(parent)
+		local tooltip = parent == FloatingBattlePetTooltip and BPBID_BreedTooltip2 or BPBID_BreedTooltip
+		if not tooltip.WithBorder then
+			Addon.ProcessBorderedTooltip(tooltip)
+			-- Don't let the addon overwrite visual properties
+			tooltip.SetBackdrop = noop
+			tooltip.SetBackdropColor = noop
+			tooltip.SetBackdropBorderColor = noop
+		end
+		local _, _, _, _, y = tooltip:GetPoint(1)
+		tooltip:SetPoint("TOPLEFT", parent, "BOTTOMLEFT", 0, y - 8)
+		tooltip:SetPoint("TOPRIGHT", parent, "BOTTOMRIGHT", 0, y - 8)
+	end)
+end)
 ------------------------------------------------------------------------
 --	Bazooka
 ------------------------------------------------------------------------
 
 tinsert(applyFuncs, function()
-	if Bazooka and Bazooka.bars and #Bazooka.bars > 0 then
-		-- print("Adding border to Bazooka")
-		local color = USE_CLASS_COLOR and (CUSTOM_CLASS_COLORS or RAID_CLASS_COLORS)[select(2, UnitClass("player"))]
-		for i = 1, #Bazooka.bars do
-			local bar = Bazooka.bars[i]
-			local db = Bazooka.db.profile.bars[i]
+	if not Bazooka or not Bazooka.bars or #Bazooka.bars == 0 then return end
+	-- print("Adding border to Bazooka")
+	local color = USE_CLASS_COLOR and (CUSTOM_CLASS_COLORS or RAID_CLASS_COLORS)[select(2, UnitClass("player"))]
+	for i = 1, #Bazooka.bars do
+		local bar = Bazooka.bars[i]
+		local db = Bazooka.db.profile.bars[i]
 
-			AddBorder(bar.frame)
+		AddBorder(bar.frame)
 
-			local r, g, b = bar.frame:GetBorderColor()
-			db.bgBorderColor.r = r
-			db.bgBorderColor.g = g
-			db.bgBorderColor.b = b
+		local r, g, b = bar.frame:GetBorderColor()
+		db.bgBorderColor.r = r
+		db.bgBorderColor.g = g
+		db.bgBorderColor.b = b
 
-			if color then
-				db.textColor.r = color.r
-				db.textColor.g = color.g
-				db.textColor.b = color.b
-			end
-
-			db.bgBorderInset = 0
-			db.bgBorderTexture = "None"
-
-			bar:applyBGSettings()
-			bar:applySettings()
+		if color then
+			db.textColor.r = color.r
+			db.textColor.g = color.g
+			db.textColor.b = color.b
 		end
-		return true
+
+		db.bgBorderInset = 0
+		db.bgBorderTexture = "None"
+
+		bar:applyBGSettings()
+		bar:applySettings()
 	end
 end)
 
@@ -250,16 +268,12 @@ end)
 ------------------------------------------------------------------------
 --[[
 tinsert(applyFuncs, function()
-	if Masque then
-		return true
-	end
+	if Masque then return end
 	local btn = BuffBroker and BuffBroker.BuffButton
-	if btn then
-		-- print("Adding border to BuffBroker")
-		AddBorder(btn)
-		btn:GetNormalTexture():SetTexCoord(0.03, 0.97, 0.03, 0.97)
-		return true
-	end
+	if not btn then return true end
+	-- print("Adding border to BuffBroker")
+	AddBorder(btn)
+	btn:GetNormalTexture():SetTexCoord(0.03, 0.97, 0.03, 0.97)
 end)
 ]]
 ------------------------------------------------------------------------
@@ -267,17 +281,15 @@ end)
 ------------------------------------------------------------------------
 
 tinsert(applyFuncs, function()
-	if Butsu then
-		AddBorder(Butsu)
-		--[[
-		local color = USE_CLASS_COLOR and (CUSTOM_CLASS_COLORS or RAID_CLASS_COLORS)[select(2, UnitClass("player"))]
-		if color then
-			Butsu:SetBorderColor(color.r, color.g, color.b)
-			Butsu.title:SetTextColor(color.r, color.g, color.b)
-		end
-		]]
-		return true
+	if not Butsu then return true end
+	AddBorder(Butsu)
+	--[[
+	local color = USE_CLASS_COLOR and (CUSTOM_CLASS_COLORS or RAID_CLASS_COLORS)[select(2, UnitClass("player"))]
+	if color then
+		Butsu:SetBorderColor(color.r, color.g, color.b)
+		Butsu.title:SetTextColor(color.r, color.g, color.b)
 	end
+	]]
 end)
 
 ------------------------------------------------------------------------
@@ -285,10 +297,8 @@ end)
 ------------------------------------------------------------------------
 
 tinsert(applyFuncs, function()
-	if CandyBucketsTooltipFrame then
-		AddBorder(CandyBucketsTooltipFrame)
-		return true
-	end
+	if not CandyBucketsTooltipFrame then return true end
+	AddBorder(CandyBucketsTooltipFrame)
 end)
 
 ------------------------------------------------------------------------
@@ -296,11 +306,9 @@ end)
 ------------------------------------------------------------------------
 
 tinsert(applyFuncs, function()
-	if CliqueSpellTab then
-		AddBorder(CliqueSpellTab)
-		CliqueSpellTab:GetNormalTexture():SetTexCoord(0.06, 0.94, 0.06, 0.94)
-		return true
-	end
+	if not CliqueSpellTab then return true end
+	AddBorder(CliqueSpellTab)
+	CliqueSpellTab:GetNormalTexture():SetTexCoord(0.06, 0.94, 0.06, 0.94)
 end)
 
 ------------------------------------------------------------------------
@@ -308,34 +316,32 @@ end)
 ------------------------------------------------------------------------
 
 tinsert(applyFuncs, function()
-	if CoolLine then
-		-- print("Adding border to CoolLine")
-		AddBorder(CoolLine)
-		CoolLine:SetBorderLayer("OVERLAY")
+	if not CoolLine then return true end
+	-- print("Adding border to CoolLine")
+	AddBorder(CoolLine)
+	CoolLine:SetBorderLayer("OVERLAY")
 --[[
-		function CoolLine_AddBorders()
-			-- print("Adding border to CoolLine icons")
-			for i = 1, CoolLine.border:GetNumChildren() do
-				local f = select(i, CoolLine.border:GetChildren())
-				if f.icon and not f.__PhanxBorder then
-					-- print("Adding border to CoolLine icon", i)
-					AddBorder(f)
-					f:SetBackdrop(nil)
-					f.icon:SetDrawLayer("BACKGROUND")
-				end
+	function CoolLine_AddBorders()
+		-- print("Adding border to CoolLine icons")
+		for i = 1, CoolLine.border:GetNumChildren() do
+			local f = select(i, CoolLine.border:GetChildren())
+			if f.icon and not f.__PhanxBorder then
+				-- print("Adding border to CoolLine icon", i)
+				AddBorder(f)
+				f:SetBackdrop(nil)
+				f.icon:SetDrawLayer("BACKGROUND")
 			end
 		end
-
-		local osa = CoolLine.SetAlpha
-		CoolLine.SetAlpha = function(...)
-			osa(...)
-			if CoolLine.border then
-				CoolLine_AddBorders()
-			end
-		end
-]]
-		return true
 	end
+
+	local osa = CoolLine.SetAlpha
+	CoolLine.SetAlpha = function(...)
+		osa(...)
+		if CoolLine.border then
+			CoolLine_AddBorders()
+		end
+	end
+]]
 end)
 
 ------------------------------------------------------------------------
@@ -344,16 +350,14 @@ end)
 --[[
 tinsert(applyFuncs, function()
 	local panel = DockingStation and DockingStation:GetPanel(1)
-	if panel then
-		-- print("Adding border to DockingStation panels")
-		local i = 1
-		while true do
-			local p = DockingStation:GetPanel(i)
-			if not p then break end
-			AddBorder(p, nil, nil, nil, true)
-			i = i + 1
-		end
-		return true
+	if not panel then return true end
+	-- print("Adding border to DockingStation panels")
+	local i = 1
+	while true do
+		local p = DockingStation:GetPanel(i)
+		if not p then break end
+		AddBorder(p, nil, nil, nil, true)
+		i = i + 1
 	end
 end)
 ]]
@@ -362,11 +366,9 @@ end)
 ------------------------------------------------------------------------
 --[[
 tinsert(applyFuncs, function()
-	if FWCDFrame then
-		-- print("Adding border to Forte_Cooldown")
-		AddBorder(FWCDFrame, nil, nil, true)
-		return true
-	end
+	if not FWCDFrame then return true end
+	-- print("Adding border to Forte_Cooldown")
+	AddBorder(FWCDFrame, nil, nil, true)
 end)
 ]]
 ------------------------------------------------------------------------
@@ -375,58 +377,54 @@ end)
 --[==[
 tinsert(applyFuncs, function()
 --[[
-	if GridLayoutFrame then
-		GridLayoutFrame.texture:SetTexture("")
-		GridLayoutFrame.texture:SetGradientAlpha("VERTICAL", 0, 0, 0, 0, 0, 0, 0, 0)
-		GridLayoutFrame.texture:Hide()
+	if not GridLayoutFrame then return true end
 
-		AddBorder(GridLayoutFrame, -9)
+	GridLayoutFrame.texture:SetTexture("")
+	GridLayoutFrame.texture:SetGradientAlpha("VERTICAL", 0, 0, 0, 0, 0, 0, 0, 0)
+	GridLayoutFrame.texture:Hide()
 
-		local backdrop = GridLayoutFrame:GetBackdrop()
-		backdrop.bgFile = "Interface\\BUTTONS\\WHITE8X8"
-		GridLayoutFrame:SetBackdrop(backdrop)
-		GridLayoutFrame:SetBackdropColor(16/255, 16/255, 16/255, 1)
+	AddBorder(GridLayoutFrame, -9)
 
-		GridLayoutFrame.SetBackdrop = noop
-		GridLayoutFrame.SetBackdropColor = noop
-		GridLayoutFrame.SetBackdropBorderColor = noop
-		GridLayoutFrame.texture.SetGradientAlpha = noop
-		GridLayoutFrame.texture.SetTexture = noop
-		GridLayoutFrame.texture.Show = noop
+	local backdrop = GridLayoutFrame:GetBackdrop()
+	backdrop.bgFile = "Interface\\BUTTONS\\WHITE8X8"
+	GridLayoutFrame:SetBackdrop(backdrop)
+	GridLayoutFrame:SetBackdropColor(16/255, 16/255, 16/255, 1)
 
-		return true
-	end
+	GridLayoutFrame.SetBackdrop = noop
+	GridLayoutFrame.SetBackdropColor = noop
+	GridLayoutFrame.SetBackdropBorderColor = noop
+	GridLayoutFrame.texture.SetGradientAlpha = noop
+	GridLayoutFrame.texture.SetTexture = noop
+	GridLayoutFrame.texture.Show = noop
 ]]
 	local GridFrame = Grid and Grid:GetModule("GridFrame")
-	if GridFrame and GridFrame.registeredFrames then
-		-- print("Adding borders to Grid frames")
+	if not GridFrame or not GridFrame.registeredFrames then return true end
+	-- print("Adding borders to Grid frames")
 --[[
-		local function Grid_SetBackdropBorderColor(f, r, g, b, a)
-			if a and a == 0 then
-				f:SetBorderColor()
-			else
-				f:SetBorderColor(r, g, b)
-			end
+	local function Grid_SetBackdropBorderColor(f, r, g, b, a)
+		if a and a == 0 then
+			f:SetBorderColor()
+		else
+			f:SetBorderColor(r, g, b)
 		end
-		local function Grid_AddBorder(f)
-			if not f.SetBorderColor then
-				f:SetBorderSize(0)
-				AddBorder(f, nil, 1)
-				f.SetBackdropBorderColor = Grid_SetBackdropBorderColor
-				f.SetBorderSize = noop
-			end
-		end
-		for frame in pairs(GridFrame.registeredFrames) do
-			Grid_AddBorder(_G[frame])
-		end
-		local o = GridFrame.RegisterFrame
-		GridFrame.RegisterFrame = function(self, f)
-			o(self, f)
-			Grid_AddBorder(f)
-		end
-]]
-		return true
 	end
+	local function Grid_AddBorder(f)
+		if not f.SetBorderColor then
+			f:SetBorderSize(0)
+			AddBorder(f, nil, 1)
+			f.SetBackdropBorderColor = Grid_SetBackdropBorderColor
+			f.SetBorderSize = noop
+		end
+	end
+	for frame in pairs(GridFrame.registeredFrames) do
+		Grid_AddBorder(_G[frame])
+	end
+	local o = GridFrame.RegisterFrame
+	GridFrame.RegisterFrame = function(self, f)
+		o(self, f)
+		Grid_AddBorder(f)
+	end
+]]
 end)
 ]==]
 ------------------------------------------------------------------------
@@ -434,13 +432,11 @@ end)
 ------------------------------------------------------------------------
 --[[
 tinsert(applyFuncs, function()
-	if InFlight and InFlight.CreateBar then
-		hooksecurefunc(InFlight, "CreateBar", function()
-			-- print("Adding border to InFlight")
-			AddBorder(InFlightBar)
-		end)
-		return true
-	end
+	if not InFlight or not InFlight.CreateBar then return true end
+	hooksecurefunc(InFlight, "CreateBar", function()
+		-- print("Adding border to InFlight")
+		AddBorder(InFlightBar)
+	end)
 end)
 ]]
 ------------------------------------------------------------------------
@@ -449,60 +445,55 @@ end)
 
 tinsert(applyFuncs, function()
 	local dataobj = LibStub and LibStub("LibDataBroker-1.1", true) and LibStub("LibDataBroker-1.1"):GetDataObjectByName("LauncherMenu")
-	if dataobj then
-		local OnClick = dataobj.OnClick
-		dataobj.OnClick = function(frame)
-			OnClick(frame)
-			dataobj.OnClick = OnClick
-			for i = UIParent:GetNumChildren(), 1, -1 do -- go backwards since it's probably the last one
-				local f = select(i, UIParent:GetChildren())
-				if f.anchorFrame == frame then
-					AddBorder(f)
-					break
-				end
+	if not dataobj then return true end
+
+	local OnClick = dataobj.OnClick
+	dataobj.OnClick = function(frame)
+		OnClick(frame)
+		dataobj.OnClick = OnClick
+		for i = UIParent:GetNumChildren(), 1, -1 do -- go backwards since it's probably the last one
+			local f = select(i, UIParent:GetChildren())
+			if f.anchorFrame == frame then
+				AddBorder(f)
+				break
 			end
 		end
-		return true
 	end
 end)
 
 ------------------------------------------------------------------------
 --	Omen
 ------------------------------------------------------------------------
-
+--[[
 tinsert(applyFuncs, function()
-	if OmenBarList then
-		-- print("Adding border to Omen")
-		AddBorder(OmenBarList)
-		return true
-	end
+	if not OmenBarList then return true end
+	-- print("Adding border to Omen")
+	AddBorder(OmenBarList)
 end)
-
+]]
 ------------------------------------------------------------------------
 --	PetBattleTeams
 ------------------------------------------------------------------------
---[[
+--[[ TODO: fix
 tinsert(applyFuncs, function()
-	if PetBattleTeamsRosterFrame then
-		-- print("Adding borders to PetBattleTeams")
-		for i, teamFrames in pairs(PetBattleTeamsRosterFrame.scrollChild.teamFrames) do
-			for j, unitFrames in pairs(teamFrames.unitFrames) do
-				for k, unitFrame in pairs(unitFrames) do
-					AddBorder(unitFrame)
-				end
+	if not PetBattleTeamsRosterFrame then return true end
+	-- print("Adding borders to PetBattleTeams")
+	for i, teamFrames in pairs(PetBattleTeamsRosterFrame.scrollChild.teamFrames) do
+		for j, unitFrames in pairs(teamFrames.unitFrames) do
+			for k, unitFrame in pairs(unitFrames) do
+				AddBorder(unitFrame)
 			end
 		end
-		return true
 	end
 end)
 ]]
 ------------------------------------------------------------------------
 --	PetJournalEnhanced
 ------------------------------------------------------------------------
---[[
+--[[ TODO: fix
 tinsert(applyFuncs, function()
 	local PetJournalEnhanced = LibStub and LibStub("AceAddon-3.0", true) and LibStub("AceAddon-3.0"):GetAddon("PetJournalEnhanced", true)
-	if not PetJournalEnhanced then return end
+	if not PetJournalEnhanced then return true end
 	--print("Adding borders to PetJournalEnhanced")
 
 	local PetList = PetJournalEnhanced:GetModule("PetList")
@@ -539,8 +530,6 @@ tinsert(applyFuncs, function()
 
 	hooksecurefunc(PetList, "PetJournal_UpdatePetList", UpdatePetList)
 	hooksecurefunc(PetList.listScroll, "update", UpdatePetList)
-
-	return true
 end)
 ]]
 ------------------------------------------------------------------------
@@ -548,7 +537,7 @@ end)
 ------------------------------------------------------------------------
 
 tinsert(applyFuncs, function()
-	if not PetTracker then return end
+	if not PetTracker then return true end
 	--print("Adding borders to PetTracker")
 
 	AddBorder(PetTrackerMapTip1)
@@ -576,8 +565,6 @@ tinsert(applyFuncs, function()
 		--print("Waiting for enemy action buttons")
 		hooksecurefunc(EnemyActions, "Startup", doEnemyActions)
 	end
-
-	return true
 end)
 
 ------------------------------------------------------------------------
@@ -585,7 +572,7 @@ end)
 ------------------------------------------------------------------------
 --[[
 tinsert(applyFuncs, function()
-	if not PetTracker_BrokerTip then return end
+	if not PetTracker_BrokerTip then return true end
 
 	-- print("Adding borders to PetTracker_Broker")
 	AddBorder(PetTracker_BrokerTip)
@@ -601,8 +588,6 @@ tinsert(applyFuncs, function()
 			break
 		end
 	end
-
-	return true
 end)
 ]]
 ------------------------------------------------------------------------
@@ -610,11 +595,9 @@ end)
 ------------------------------------------------------------------------
 
 tinsert(applyFuncs, function()
-	if QuestPointerTooltip then
-		-- print("Adding border to QuestPointerTooltip")
-		AddBorder(QuestPointerTooltip)
-		return true
-	end
+	if not QuestPointerTooltip then return true end
+	-- print("Adding border to QuestPointerTooltip")
+	AddBorder(QuestPointerTooltip)
 end)
 
 ------------------------------------------------------------------------
@@ -622,22 +605,20 @@ end)
 ------------------------------------------------------------------------
 --[[
 tinsert(applyFuncs, function()
-	if SexyCooldown and SexyCooldown.bars then
-		-- print("Adding borders to SexyCooldown")
-		local color = USE_CLASS_COLOR and (CUSTOM_CLASS_COLORS or RAID_CLASS_COLORS)[select(2, UnitClass("player"))]
-		for i, bar in ipairs(SexyCooldown.bars) do
-			AddBorder(bar)
-			if color then
-				local bcolor = bar.settings.bar.backgroundColor
-				bcolor.r, bcolor.g, bcolor.b = color.r * 0.2, color.g * 0.2, color.b * 0.2
-				bar:SetBackdropColor(bcolor.r, bcolor.g, bcolor.b, bcolor.a)
+	if not SexyCooldown or not SexyCooldown.bars then return true end
+	-- print("Adding borders to SexyCooldown")
+	local color = USE_CLASS_COLOR and (CUSTOM_CLASS_COLORS or RAID_CLASS_COLORS)[select(2, UnitClass("player"))]
+	for i, bar in ipairs(SexyCooldown.bars) do
+		AddBorder(bar)
+		if color then
+			local bcolor = bar.settings.bar.backgroundColor
+			bcolor.r, bcolor.g, bcolor.b = color.r * 0.2, color.g * 0.2, color.b * 0.2
+			bar:SetBackdropColor(bcolor.r, bcolor.g, bcolor.b, bcolor.a)
 
-				local tcolor = bar.settings.bar.fontColor
-				tcolor.r, tcolor.g, tcolor.b = color.r, color.g, color.b
-				bar:SetBarFont()
-			end
+			local tcolor = bar.settings.bar.fontColor
+			tcolor.r, tcolor.g, tcolor.b = color.r, color.g, color.b
+			bar:SetBarFont()
 		end
-		return true
 	end
 end)
 ]]
@@ -646,11 +627,9 @@ end)
 ------------------------------------------------------------------------
 
 tinsert(applyFuncs, function()
-	if TomTomTooltip then
-		-- print("Adding border to TomTomTooltip")
-		AddBorder(TomTomTooltip)
-		return true
-	end
+	if not TomTomTooltip then return true end
+	-- print("Adding border to TomTomTooltip")
+	AddBorder(TomTomTooltip)
 end)
 
 ------------------------------------------------------------------------
@@ -659,7 +638,7 @@ end)
 
 tinsert(applyFuncs, function()
 	local Touhin = LibStub and LibStub("AceAddon-3.0", true) and LibStub("AceAddon-3.0"):GetAddon("Touhin", true)
-	if not Touhin then return end
+	if not Touhin then return true end
 
 	local origSetRow = {}
 
@@ -725,3 +704,4 @@ end)
 ---------------------------------------------------------------------
 -- xMerchant
 ---------------------------------------------------------------------
+-- TODO: skin it!
