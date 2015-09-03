@@ -91,7 +91,7 @@ local eventFrame = CreateFrame("Frame")
 eventFrame:RegisterEvent("PLAYER_LOGIN")
 eventFrame:SetScript("OnEvent", function(self, event)
 	for i, func in pairs(applyFuncs) do
-		if func() then
+		if not func() then -- return true to keep trying
 			applyFuncs[i] = nil
 		end
 	end
@@ -109,18 +109,6 @@ end)
 --	Bordered tooltips
 ------------------------------------------------------------------------
 
-local borderedTooltips = {
-	"BattlePetTooltip",
-	"FloatingBattlePetTooltip",
-	"FloatingGarrisonFollowerTooltip",
-	"LFDSearchStatus",
-	"PetBattlePrimaryAbilityTooltip",
-	"PetBattlePrimaryUnitTooltip",
-	"PetJournalPrimaryAbilityTooltip",
-	"PetJournalSecondaryAbilityTooltip",
-	"QueueStatusFrame",
-}
-
 local borderedTooltipRegions = {
 	"Background",
 	"BorderBottom",
@@ -133,26 +121,41 @@ local borderedTooltipRegions = {
 	"BorderTopRight",
 }
 
+function Addon.ProcessBorderedTooltip(f)
+	--print("Adding border to", f:GetName())
+	for _, region in pairs(borderedTooltipRegions) do
+		f[region]:SetTexture("")
+	end
+	f:SetBackdrop(BACKDROP)
+	f:SetBackdropColor(0, 0, 0, 0.8)
+	AddBorder(f)
+end
+
+local borderedTooltips = {
+	"BattlePetTooltip",
+	"FloatingBattlePetTooltip",
+	"FloatingGarrisonFollowerTooltip",
+	"LFDSearchStatus",
+	"PetBattlePrimaryAbilityTooltip",
+	"PetBattlePrimaryUnitTooltip",
+	"PetJournalPrimaryAbilityTooltip",
+	"PetJournalSecondaryAbilityTooltip",
+	"QueueStatusFrame",
+}
+
 tinsert(applyFuncs, function()
 	for i = #borderedTooltips, 1, -1 do
 		local name = borderedTooltips[i]
 		local f = _G[name]
 		if f then
-			--print("Adding border to", name)
-			for _, region in pairs(borderedTooltipRegions) do
-				f[region]:SetTexture("")
-			end
-			f:SetBackdrop(BACKDROP)
-			f:SetBackdropColor(0, 0, 0, 0.8)
-			AddBorder(f)
+			Addon.ProcessBorderedTooltip(f)
 			tremove(borderedTooltips, i)
 		end
 	end
-	if #borderedTooltips == 0 then
-		borderedTooltips = nil
-		borderedTooltipRegions = nil
+	if #borderedTooltips > 0 then
 		return true
 	end
+	borderedTooltips = nil
 end)
 
 ------------------------------------------------------------------------
@@ -616,8 +619,6 @@ tinsert(applyFuncs, function()
 	---------------------------------------------------------------------
 	-- Done!
 	---------------------------------------------------------------------
-
-	return true
 end)
 
 ------------------------------------------------------------------------
@@ -625,11 +626,9 @@ end)
 ------------------------------------------------------------------------
 
 tinsert(applyFuncs, function()
-	if EventTraceTooltip then
-		AddBorder(EventTraceTooltip)
-		AddBorder(FrameStackTooltip)
-		return true
-	end
+	if not EventTraceTooltip then return true end
+	AddBorder(EventTraceTooltip)
+	AddBorder(FrameStackTooltip)
 end)
 
 ------------------------------------------------------------------------
@@ -637,7 +636,7 @@ end)
 ------------------------------------------------------------------------
 
 tinsert(applyFuncs, function()
-	if not GlyphFrame_UpdateGlyphList then return end
+	if not GlyphFrame_UpdateGlyphList then return true end
 
 	hooksecurefunc("GlyphFrame_UpdateGlyphList", function()
 		local buttons = GlyphFrame.scrollFrame.buttons
@@ -650,8 +649,6 @@ tinsert(applyFuncs, function()
 			end
 		end
 	end)
-
-	return true
 end)
 
 ------------------------------------------------------------------------
@@ -659,7 +656,7 @@ end)
 ------------------------------------------------------------------------
 -- TODO: use AddBorderToItemButton ?
 tinsert(applyFuncs, function()
-	if not GuildBankFrame then return end
+	if not GuildBankFrame then return true end
 
 	hooksecurefunc("GuildBankFrame_ShowColumns", function()
 		local tab = GetCurrentGuildBankTab()
@@ -674,8 +671,6 @@ tinsert(applyFuncs, function()
 			ColorByQuality(button, nil, link)
 		end
 	end)
-
-	return true
 end)
 
 ------------------------------------------------------------------------
@@ -683,7 +678,7 @@ end)
 ------------------------------------------------------------------------
 
 tinsert(applyFuncs, function()
-	if not InspectPaperDollItemSlotButton_Update then return end
+	if not InspectPaperDollItemSlotButton_Update then return true end
 
 	hooksecurefunc("InspectPaperDollItemSlotButton_Update", function(button)
 		AddBorderToItemButton(button)
@@ -694,7 +689,6 @@ tinsert(applyFuncs, function()
 		ColorByQuality(button, nil, item)
 	end)
 ]]
-	return true
 end)
 
 ------------------------------------------------------------------------
@@ -702,7 +696,7 @@ end)
 ------------------------------------------------------------------------
 
 tinsert(applyFuncs, function()
-	if not PetBattleFrame then return end
+	if not PetBattleFrame then return true end
 
 	hooksecurefunc("PetBattleFrame_UpdateAllActionButtons", function(self)
 		--print("PetBattleFrame_UpdateAllActionButtons")
@@ -727,16 +721,14 @@ tinsert(applyFuncs, function()
 	end)
 
 	-- TODO: Fix checked texture sticking on switch button after use
-
-	return true
 end)
 
 ------------------------------------------------------------------------
---	Blizzard_PetJournal
+--	Blizzard_Collections
 ------------------------------------------------------------------------
 
 tinsert(applyFuncs, function()
-	if not MountJournalListScrollFrame then return end
+	if not MountJournalListScrollFrame then return true end
 
 	local function qualityBorder_SetVertexColor(self, r, g, b)
 		self:GetParent().dragButton:SetBorderColor(r, g, b)
@@ -823,23 +815,21 @@ tinsert(applyFuncs, function()
 	-------------
 
 	for i = 1, 18 do
-		local button = _G["ToySpellButton"..i]
+		local button = ToyBox.iconsFrame["spellButton"..i]
 		AddBorder(button)
+		button:SetBorderLayer("OVERLAY")
 		button:SetBorderInsets(5, 5, 3, 7)
-		_G["ToySpellButton"..i.."SlotFrameCollected"]:SetTexture("")
-		_G["ToySpellButton"..i.."SlotFrameUncollected"]:SetTexture("")
-		_G["ToySpellButton"..i.."SlotFrameUncollectedInnerGlow"]:SetTexture("")
+		button.slotFrameCollected:SetTexture("")
+		button.slotFrameUncollected:SetTexture("")
+		button.slotFrameUncollectedInnerGlow:SetTexture("")
 	end
 
 	hooksecurefunc("ToySpellButton_UpdateButton", function(self)
-		local name = self:GetName()
-		_G[name.."IconTextureUncollected"]:SetAlpha(0.5)
+		self.iconTextureUncollected:SetAlpha(0.5)
 		if self.itemID then
 			ColorByQuality(self, nil, self.itemID)
 		end
 	end)
-
-	return true
 end)
 
 ------------------------------------------------------------------------
@@ -847,7 +837,7 @@ end)
 ------------------------------------------------------------------------
 
 tinsert(applyFuncs, function()
-	if not PlayerTalentFrame then return end
+	if not PlayerTalentFrame then return true end
 
 	AddBorder(PlayerTalentFrameSpecializationSpellScrollFrameScrollChildAbility1, nil, 10)
 	PlayerTalentFrameSpecializationSpellScrollFrameScrollChildAbility1.ring:Hide()
@@ -866,8 +856,6 @@ tinsert(applyFuncs, function()
 			button:SetBorderInsets(37, 122, 6, 6)
 		end
 	end
-
-	return true
 end)
 
 ---------------------------------------------------------------------
@@ -875,7 +863,7 @@ end)
 ---------------------------------------------------------------------
 
 tinsert(applyFuncs, function()
-	if not TradeSkillFrame then return end
+	if not TradeSkillFrame then return true end
 
 	AddBorder(TradeSkillSkillIcon, nil, 1)
 
@@ -890,38 +878,34 @@ tinsert(applyFuncs, function()
 			button:SetBorderInsets(0, 107, 0, 3)
 		end
 	end)
-
-	return true
 end)
 
 ---------------------------------------------------------------------
 -- Blizzard_VoidStorageUI
 ---------------------------------------------------------------------
-
+-- TODO: fix
 tinsert(applyFuncs, function()
-	if not VoidStorage_ItemsUpdate then return end
+	if not VoidStorage_ItemsUpdate then return true end
 
 	hooksecurefunc("VoidStorage_ItemsUpdate", function(doDeposit, doContents)
 		if doDeposit then
 			for i = 1, 9 do
 				local button = _G["VoidStorageDepositButton"..i]
-				local item = GetVoidTransferDepositInfo(i)
-				ColorByQuality(button, nil, item)
+				local item, _, quality = GetVoidTransferDepositInfo(i)
+				ColorByQuality(button, quality)
 			end
 		end
 		if doContents then
 			for i = 1, 9 do
 				local button = _G["VoidStorageWithdrawButton"..i]
-				local item = GetVoidTransferWithdrawalInfo(i)
-				ColorByQuality(button, nil, item)
+				local item, _, quality = GetVoidTransferWithdrawalInfo(i)
+				ColorByQuality(button, quality)
 			end
 			for i = 1, 80 do
 				local button = _G["VoidStorageStorageButton"..i]
-				local item = GetVoidItemInfo(i)
-				ColorByQuality(button, nil, item)
+				local item, _, _, recent, _, quality = GetVoidItemInfo(i)
+				ColorByQuality(button, quality)
 			end
 		end
 	end)
-
-	return true
 end)

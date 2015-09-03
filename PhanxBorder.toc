@@ -1,4 +1,4 @@
-## Interface: 60000
+## Interface: 60200
 
 ## Title: PhanxBorder
 ## Notes: Adds shiny borders to stuff.
@@ -13,5 +13,3 @@ Border.lua
 
 Blizzard.lua
 Addons.lua
-
-# Blizzard-Panels.lua
