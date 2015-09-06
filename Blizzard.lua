@@ -73,13 +73,22 @@ do
 		if button.__PhanxBorder then return end
 		if not button.icon then return print(button:GetName(), "is not an item button!") end
 		AddBorder(button) -- , nil, 1)
-		button:GetNormalTexture():SetTexture("") -- useless extra icon border
 		button.icon:SetTexCoord(0.04, 0.96, 0.04, 0.96)
+		if button:GetNormalTexture() then
+			button:GetNormalTexture():SetTexture("") -- useless extra icon border
+		end
+
 		button.IconBorder:SetTexture("")
 		hooksecurefunc(button.IconBorder, "Hide", IconBorder_Hide)
 		hooksecurefunc(button.IconBorder, "SetVertexColor", IconBorder_SetVertexColor)
+
+		button:GetHighlightTexture():SetTexture("")
 		button:HookScript("OnEnter", ColorByClass)
 		button:HookScript("OnLeave", Button_OnLeave)
+
+		if button:IsMouseOver() then
+			ColorByClass(button)
+		end
 	end
 end
 
@@ -883,28 +892,49 @@ end)
 ---------------------------------------------------------------------
 -- Blizzard_VoidStorageUI
 ---------------------------------------------------------------------
--- TODO: fix
+
 tinsert(applyFuncs, function()
 	if not VoidStorage_ItemsUpdate then return true end
 
-	hooksecurefunc("VoidStorage_ItemsUpdate", function(doDeposit, doContents)
+	local function setup(button)
+		AddBorderToItemButton(button)
+		button:SetBorderInsets(1)
+		button:SetBorderLayer("OVERLAY")
+		button.searchOverlay:SetDrawLayer("ARTWORK")
+		button:GetPushedTexture():SetTexture("")
+	end
+	for i = 1, 9 do
+		setup(_G["VoidStorageDepositButton"..i])
+		setup(_G["VoidStorageWithdrawButton"..i])
+	end
+	for i = 1, 80 do
+		setup(_G["VoidStorageStorageButton"..i])
+	end
+	setup = nil
+
+	hooksecurefunc("VoidStorage_ItemsUpdate", function(doDeposit, doContents)--[[
 		if doDeposit then
 			for i = 1, 9 do
 				local button = _G["VoidStorageDepositButton"..i]
 				local item, _, quality = GetVoidTransferDepositInfo(i)
 				ColorByQuality(button, quality)
 			end
-		end
-		if doContents then
+		end]]
+		if doContents then--[[
 			for i = 1, 9 do
 				local button = _G["VoidStorageWithdrawButton"..i]
 				local item, _, quality = GetVoidTransferWithdrawalInfo(i)
 				ColorByQuality(button, quality)
-			end
+			end]]
 			for i = 1, 80 do
 				local button = _G["VoidStorageStorageButton"..i]
-				local item, _, _, recent, _, quality = GetVoidItemInfo(i)
-				ColorByQuality(button, quality)
+		--		local item, _, _, recent, _, quality = GetVoidItemInfo(VoidStorageFrame.page, i)
+				if button.antsFrame then
+					button.IconBorder:SetVertexColor(1, 0.82, 0) -- highlight new deposits less obtrusively
+					button.antsFrame:Hide()
+		--		else
+		--			ColorByQuality(button, quality)
+				end
 			end
 		end
 	end)
