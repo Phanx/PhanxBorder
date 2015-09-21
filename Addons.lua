@@ -44,16 +44,15 @@ end)
 
 tinsert(applyFuncs, function()
 	local QTip = LibStub and LibStub("LibQTip-1.0", true)
-	if QTip then
-		local Acquire = QTip.Acquire
-		QTip.Acquire = function(lib, ...)
-			local tooltip = Acquire(lib, ...)
-			if tooltip then
-				AddBorder(tooltip)
-			end
-			return tooltip
+	if not QTip then return true end
+
+	local Acquire = QTip.Acquire
+	QTip.Acquire = function(lib, ...)
+		local tooltip = Acquire(lib, ...)
+		if tooltip then
+			AddBorder(tooltip)
 		end
-		return true
+		return tooltip
 	end
 end)
 
@@ -62,7 +61,7 @@ end)
 ------------------------------------------------------------------------
 --[[
 tinsert(applyFuncs, function()
-	if not ArchyDigSiteFrame then return end
+	if not ArchyDigSiteFrame then return true end
 
 	AddBorder(ArchyArtifactFrame)
 	ArchyArtifactFrame.SetBackdropBorderColor = noop
@@ -80,8 +79,6 @@ tinsert(applyFuncs, function()
 	ArchyDistanceIndicatorFrameSurveyButton:SetNormalTexture("")
 	ArchyDistanceIndicatorFrameCrateButton:SetNormalTexture("")
 	ArchyDistanceIndicatorFrameLorItemButton:SetNormalTexture("")
-
-	return true
 end)
 ]]
 ------------------------------------------------------------------------
@@ -89,11 +86,9 @@ end)
 ------------------------------------------------------------------------
 
 tinsert(applyFuncs, function()
-	if AtlasLootTooltip then
-		-- print("Adding border to AtlasLootTooltip")
-		AddBorder(AtlasLootTooltip)
-		return true
-	end
+	if not AtlasLootTooltip then return true end
+	-- print("Adding border to AtlasLootTooltip")
+	AddBorder(AtlasLootTooltip)
 end)
 
 ------------------------------------------------------------------------
@@ -101,41 +96,38 @@ end)
 ------------------------------------------------------------------------
 --[[
 tinsert(applyFuncs, function()
-	if Auracle and Auracle.windows then
-		-- print("Adding border to Auracle")
-		-- Auracle.windows[1].trackers[1].uiFrame
-		local function Auracle_SetVertexColor(icon, r, g, b, a)
-			icon:realSetVertexColor(r, g, b, a)
-			icon:GetParent():SetBorderAlpha(a)
+	if not Auracle or not Auracle.windows then return true end
+	-- print("Adding border to Auracle")
+	-- Auracle.windows[1].trackers[1].uiFrame
+	local function Auracle_SetVertexColor(icon, r, g, b, a)
+		icon:realSetVertexColor(r, g, b, a)
+		icon:GetParent():SetBorderAlpha(a)
+	end
+	for i, window in pairs(Auracle.windows) do
+		for i, tracker in ipairs(window.trackers) do
+			local f = tracker.uiFrame
+			AddBorder(f)
+
+			local cd = f.Auracle_tracker.uiCooldown
+			cd:ClearAllPoints()
+			cd:SetPoint("TOPLEFT", f, 2, -2)
+			cd:SetPoint("BOTTOMRIGHT", f, -2, -2)
+
+			local icon = f.Auracle_tracker.uiIcon
+			icon.realSetVertexColor = icon.SetVertexColor
+			icon.SetVertexColor = Auracle_SetVertexColor
+
+			local _, _, _, a = icon:GetVertexColor()
+			f:SetBorderAlpha(a)
 		end
-		for i, window in pairs(Auracle.windows) do
-			for i, tracker in ipairs(window.trackers) do
-				local f = tracker.uiFrame
-				AddBorder(f)
-
-				local cd = f.Auracle_tracker.uiCooldown
-				cd:ClearAllPoints()
-				cd:SetPoint("TOPLEFT", f, 2, -2)
-				cd:SetPoint("BOTTOMRIGHT", f, -2, -2)
-
-				local icon = f.Auracle_tracker.uiIcon
-				icon.realSetVertexColor = icon.SetVertexColor
-				icon.SetVertexColor = Auracle_SetVertexColor
-
-				local _, _, _, a = icon:GetVertexColor()
-				f:SetBorderAlpha(a)
-			end
-		end
-		return true
 	end
 end)
 ]]
 ------------------------------------------------------------------------
 --	Bagnon
 ------------------------------------------------------------------------
---[==[
 tinsert(applyFuncs, function()
-	if not Bagnon then return end
+	if not Bagnon then return true end
 
 	-- TODO: Something to prevent conflicts with Masque?
 	if select(4, GetAddOnInfo("Bagnon_Facade")) then
@@ -176,16 +168,21 @@ tinsert(applyFuncs, function()
 
 	local function ResizeChildBorders(frame)
 		frame:SetBorderSize()
-		for i = 1, frame:GetNumChildren() do
-			local child = select(i, frame:GetChildren())
-			local slots = child.itemSlots
-			if slots then
-				for i = 1, #slots do
-					ItemSlot_Update(slots[i])
-				end
-				break
+		if frame.itemFrame then
+			for _, button in pairs(frame.itemFrame.buttons) do
+				ItemSlot_Update(button)
 			end
 		end
+	end
+	
+	if USE_CLASS_COLOR then
+		hooksecurefunc(Bagnon.Frame, "SetPlayer", function(frame, player)
+			--print("Bagnon:SetPlayer", frame.frameID, player)
+			local color = Bagnon:GetPlayerColor(player)
+			local t = Bagnon.sets.global[frame.frameID].borderColor
+			t[1], t[2], t[3], t[4] = color.r, color.g, color.b, 1
+			frame:SetBackdropBorderColor(color.r, color.g, color.b, 1)
+		end)
 	end
 
 	hooksecurefunc(Bagnon, "CreateFrame", function(Bagnon, id)
@@ -201,15 +198,12 @@ tinsert(applyFuncs, function()
 		if USE_CLASS_COLOR then
 			local _, class = UnitClass("player")
 			local color = (CUSTOM_CLASS_COLORS or RAID_CLASS_COLORS)[class]
-			frame:GetSettings():SetBorderColor(color.r, color.g, color.b, 1)
-		else
-			frame:GetSettings():SetBorderColor(frame:GetBorderColor())
+			local t = Bagnon.sets.global[id].borderColor
+			t[1], t[2], t[3], t[4] = color.r, color.g, color.b, 1
+			frame:SetBackdropBorderColor(color.r, color.g, color.b, 1)
 		end
 	end)
-
-	return true
 end)
-]==]
 ------------------------------------------------------------------------
 -- BattlePetBreedID
 ------------------------------------------------------------------------
@@ -235,7 +229,7 @@ end)
 ------------------------------------------------------------------------
 
 tinsert(applyFuncs, function()
-	if not Bazooka or not Bazooka.bars or #Bazooka.bars == 0 then return end
+	if not Bazooka or not Bazooka.bars or #Bazooka.bars == 0 then return true end
 	-- print("Adding border to Bazooka")
 	local color = USE_CLASS_COLOR and (CUSTOM_CLASS_COLORS or RAID_CLASS_COLORS)[select(2, UnitClass("player"))]
 	for i = 1, #Bazooka.bars do
@@ -268,7 +262,7 @@ end)
 ------------------------------------------------------------------------
 --[[
 tinsert(applyFuncs, function()
-	if Masque then return end
+	if Masque then return true end
 	local btn = BuffBroker and BuffBroker.BuffButton
 	if not btn then return true end
 	-- print("Adding border to BuffBroker")
