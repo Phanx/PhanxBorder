@@ -1,12 +1,14 @@
 --[[--------------------------------------------------------------------
 	PhanxBorder
 	Adds shiny borders to things.
-	Copyright (c) 2008-2015 Phanx <addons@phanx.net>. All rights reserved.
+	Copyright (c) 2008-2016 Phanx <addons@phanx.net>. All rights reserved.
 	https://github.com/Phanx/PhanxBorder
 ----------------------------------------------------------------------]]
 
 local isPhanx = select(5, GetAddOnInfo("PhanxMedia")) ~= "MISSING"
-local FONT = oUFPhanxConfig and oUFPhanxConfig.font or isPhanx and [[Interface\AddOns\PhanxMedia\font\Asap.ttf]] or [[Fonts\FRIZQT__.ttf]]
+local FONT = oUFPhanxConfig and oUFPhanxConfig.font or isPhanx
+	and [[Interface\AddOns\PhanxMedia\font\Asap.ttf]]
+	or [[Fonts\FRIZQT__.ttf]]
 
 local BACKDROP = {
 	bgFile = [[Interface\BUTTONS\WHITE8X8]], tile = true, tileSize = 8,

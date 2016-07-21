@@ -1,11 +1,11 @@
-## Interface: 60200
+## Interface: 70000
 
 ## Title: PhanxBorder
 ## Notes: Adds shiny borders to stuff.
 
 ## Author: Phanx
 ## X-Email: addons@phanx.net
-## X-Copyright: Copyright (c) 2008-2015 Phanx. All rights reserved.
+## X-Copyright: Copyright (c) 2008-2016 Phanx. All rights reserved.
 
 ## OptionalDependencies: Masque, PhanxMedia, LibBackdrop-1.0
 

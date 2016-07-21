@@ -1,7 +1,7 @@
 --[[--------------------------------------------------------------------
 	PhanxBorder
 	Adds shiny borders to things.
-	Copyright (c) 2008-2015 Phanx <addons@phanx.net>. All rights reserved.
+	Copyright (c) 2008-2016 Phanx <addons@phanx.net>. All rights reserved.
 	https://github.com/Phanx/PhanxBorder
 ----------------------------------------------------------------------]]
 
