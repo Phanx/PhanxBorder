@@ -182,7 +182,6 @@ tinsert(applyFuncs, function()
 		["DropDownList1MenuBackdrop"] = false,
 		["DropDownList2MenuBackdrop"] = false,
 
-		["ConsolidatedBuffsTooltip"] = false,
 		["FriendsTooltip"] = false,
 		["GameTooltip"] = false,
 		["ItemRefShoppingTooltip1"] = false,
@@ -580,26 +579,6 @@ tinsert(applyFuncs, function()
 		SkinTab(_G["SpellBookSkillLineTab"..i])
 	end
 
-	hooksecurefunc("SpellBook_UpdateCoreAbilitiesTab", function()
-		for i = 1, #SpellBookCoreAbilitiesFrame.Abilities do
-			local button = SpellBookCoreAbilitiesFrame.Abilities[i]
-			if not button.__PhanxBorder then
-				AddBorder(button, nil, 1)
-				button.iconTexture:SetTexCoord(0.05, 0.95, 0.05, 0.95)
-				button.FutureTexture:SetTexture("")
-				select(3, button:GetRegions()):SetTexture("") -- swirly thing
-				local a, b, c, x, y = button.Name:GetPoint(1)
-				button.Name:SetPoint(a, b, c, x, 3)
-				if isPhanx then
-					button.Name:SetFont(FONT, 16)
-				end
-			end
-		end
-		for i = 1, #SpellBookCoreAbilitiesFrame.SpecTabs do
-			SkinTab(SpellBookCoreAbilitiesFrame.SpecTabs[i])
-		end
-	end)
-
 	---------------------------------------------------------------------
 	-- Static popups
 	---------------------------------------------------------------------
@@ -760,6 +739,8 @@ tinsert(applyFuncs, function()
 	end
 	for i = 1, #MountJournalListScrollFrame.buttons do
 		local button = MountJournalListScrollFrame.buttons[i]
+		button.favorite:SetParent(button.DragButton)
+		button.name:SetWidth(button:GetWidth())
 		AddBorder(button.DragButton, nil, 2)
 		hooksecurefunc(button.icon, "SetTexture", FixTexture)
 	end
