@@ -196,7 +196,6 @@ tinsert(applyFuncs, function()
 		["VideoOptionsTooltip"] = false,
 		["WorldMapCompareTooltip1"] = false,
 		["WorldMapCompareTooltip2"] = false,
-		["WorldMapTooltip"] = false,
 
 		["MerchantRepairItemButton"] = 3,
 		["MerchantRepairAllButton"] = 3,
@@ -221,6 +220,8 @@ tinsert(applyFuncs, function()
 			_G[frame.."NameFrame"]:SetTexture("")
 		end
 	end
+
+	AddBorder(WorldMapTooltip.BackdropFrame)
 
 	if GetMinimapShape and GetMinimapShape() == "SQUARE" then
 		AddBorder(Minimap)
@@ -622,26 +623,6 @@ tinsert(applyFuncs, function()
 end)
 
 ------------------------------------------------------------------------
---	Blizzard_GlyphUI
-------------------------------------------------------------------------
-
-tinsert(applyFuncs, function()
-	if not GlyphFrame_UpdateGlyphList then return true end
-
-	hooksecurefunc("GlyphFrame_UpdateGlyphList", function()
-		local buttons = GlyphFrame.scrollFrame.buttons
-		for i = 1, #buttons do
-			local button = buttons[i]
-			if not button.BorderTextures then
-				AddBorder(button)
-				button:SetBorderInsets(3, 125, 4, 4)
-				button.icon:SetDrawLayer("ARTWORK")
-			end
-		end
-	end)
-end)
-
-------------------------------------------------------------------------
 --	Blizzard_GuildBankUI
 ------------------------------------------------------------------------
 -- TODO: use AddBorderToItemButton ?
@@ -822,6 +803,65 @@ tinsert(applyFuncs, function()
 			ColorByQuality(self, nil, self.itemID)
 		end
 	end)
+
+	-------------
+	-- Heirlooms
+	-------------
+
+	hooksecurefunc(HeirloomsJournal, "LayoutCurrentPage", function(self)
+		for i = 1, #self.heirloomEntryFrames do
+			local button = self.heirloomEntryFrames[i]
+			AddBorder(button)
+			button:SetBorderLayer("OVERLAY")
+			button:SetBorderInsets(5, 5, 3, 7)
+			button.iconTextureUncollected:SetAlpha(0.5)
+			button.slotFrameCollected:SetTexture("")
+			button.slotFrameUncollected:SetTexture("")
+			button.slotFrameUncollectedInnerGlow:SetTexture("")
+		end
+	end)
+
+	hooksecurefunc(HeirloomsJournal, "UpdateButton", function(self, button)
+		if C_Heirloom.PlayerHasHeirloom(button.itemID) then
+			ColorByQuality(button, LE_ITEM_QUALITY_HEIRLOOM)
+			button:SetAlpha(1)
+		else
+			ColorByQuality(button)
+			button:SetAlpha(0.5)
+			button.name:SetTextColor(1, 0.82, 0, 1)
+			button.name:SetShadowColor(0, 0, 0, 1)
+			button.special:SetTextColor(.427, .352, 0, 1)
+			button.special:SetShadowColor(0, 0, 0, 1)
+		end
+	end)
+
+	-------------
+	-- Wardrobe
+	-------------
+	local WARDROBE_PAGE_SIZE = 18
+
+	for i = 1, WARDROBE_PAGE_SIZE do
+    	local model = WardrobeCollectionFrame.ModelsFrame.Models[i]
+		model.Border:Hide()
+		AddBorder(model, nil, -1)
+	end
+	
+	hooksecurefunc("WardrobeCollectionFrame_Update", function(button)
+		for i = 1, WARDROBE_PAGE_SIZE do
+			local index = i + (WardrobeCollectionFrame_GetCurrentPage() - 1) * WARDROBE_PAGE_SIZE
+    		local visualInfo = WardrobeCollectionFrame.filteredVisualsList[index]
+    		if visualInfo then
+				local model = WardrobeCollectionFrame.ModelsFrame.Models[i]
+				if not visualInfo.isCollected then
+					model:SetBorderColor(0.25, 0.25, 0.25)
+				elseif not visualInfo.isUsable then
+					model:SetBorderColor(0.7, 0.3, 0.3)
+				else
+					model:SetBorderColor()
+				end
+			end
+		end
+	end)
 end)
 
 ------------------------------------------------------------------------
@@ -837,15 +877,18 @@ tinsert(applyFuncs, function()
 	hooksecurefunc("PlayerTalentFrame_CreateSpecSpellButton", function(self, index)
 		local f = self.spellsScroll.child["abilityButton"..index]
 		AddBorder(f, nil, 10)
-		f:SetBorderLayer("OVERLAY")
+		f.icon:SetDrawLayer("BORDER")
 		f.ring:Hide()
 	end)
 
-	for row = 1, 6 do
+	for row = 1, 7 do
 		for col = 1, 3 do
-			local button = _G["PlayerTalentFrameTalentsTalentRow"..row.."Talent"..col]
-			AddBorder(button)
-			button:SetBorderInsets(37, 122, 6, 6)
+			local f = _G["PlayerTalentFrameTalentsTalentRow"..row.."Talent"..col]
+			AddBorder(f)
+			--f:SetBorderLayer("OVERLAY")
+			f:SetBorderInsets(35, 121, 4, 4)
+			f.icon:SetDrawLayer("BORDER")
+			f.icon:SetTexCoord(0.06, 0.94, 0.06, 0.94)
 		end
 	end
 end)
@@ -853,7 +896,7 @@ end)
 ---------------------------------------------------------------------
 -- Blizzard_TradeSkillUI
 ---------------------------------------------------------------------
-
+--[[
 tinsert(applyFuncs, function()
 	if not TradeSkillFrame then return true end
 
@@ -871,7 +914,7 @@ tinsert(applyFuncs, function()
 		end
 	end)
 end)
-
+]]
 ---------------------------------------------------------------------
 -- Blizzard_VoidStorageUI
 ---------------------------------------------------------------------
