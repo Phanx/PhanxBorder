@@ -52,7 +52,7 @@ local frames = {}
 local points = { "TOPLEFT", "TOP", "TOPRIGHT", "RIGHT", "BOTTOMRIGHT", "BOTTOM", "BOTTOMLEFT", "LEFT" }
 
 local prototype = {
-	__PhanxBorder = {
+	PhanxBorder = {
 		textures = {},
 		insets = {},
 		color = {},
@@ -71,11 +71,11 @@ function Addon.AddBorder(f, size, inset, bgControl, ...)
 	assert(type(f) == "table" and type(rawget(f, 0)) == "userdata", "AddBorder: arg1 must be a frame")
 	assert(type(f.CreateTexture) == "function", "AddBorder: arg1 is missing a 'CreateTexture' method")
 	assert(type(f.IsForbidden) ~= "function" or not f:IsForbidden(), "AddBorder: " .. (f:GetName() or UNKNOWN) .. " is a forbidden frame!")
-	if f.__PhanxBorder then return end
+	if f.PhanxBorder then return end
 
 	tcopy(prototype, f, true)
 
-	local t = f.__PhanxBorder.textures
+	local t = f.PhanxBorder.textures
 	for i = 1, #points do
 		local point = points[i]
 		local tx = f:CreateTexture(nil, BORDER_LAYER, 100)
@@ -153,19 +153,19 @@ end
 ------------------------------------------------------------------------
 
 function prototype:OnSetScale(scale)
-	return prototype.SetBorderSize(self, self.__PhanxBorder.size)
+	return prototype.SetBorderSize(self, self.PhanxBorder.size)
 end
 
 ------------------------------------------------------------------------
 
 function prototype:GetBorderSize()
-	local border = self.__PhanxBorder
+	local border = self.PhanxBorder
 	local insets = border.insets
 	return border.size, insets.left, insets.right, insets.top, insets.bottom
 end
 
 function prototype:SetBorderSize(size, dL, dR, dT, dB)
-	local border = self.__PhanxBorder
+	local border = self.PhanxBorder
 	local insets = border.insets
 	--print("SetBorderSize", size, dL, dR, dT, dB)
 
@@ -214,25 +214,25 @@ end
 ------------------------------------------------------------------------
 
 function prototype:GetBorderInsets()
-	local border = self.__PhanxBorder
+	local border = self.PhanxBorder
 	local insets = border.insets
 	return insets.left, insets.right, insets.top, insets.bottom
 end
 
 function prototype:SetBorderInsets(dL, dR, dT, dB)
-	local border = self.__PhanxBorder
+	local border = self.PhanxBorder
 	return prototype.SetBorderSize(self, nil, dL, dR, dT, dB)
 end
 
 ------------------------------------------------------------------------
 
 function prototype:GetBorderAlpha()
-	local border = self.__PhanxBorder
+	local border = self.PhanxBorder
 	return border.color.a
 end
 
 function prototype:SetBorderAlpha(a)
-	local border = self.__PhanxBorder
+	local border = self.PhanxBorder
 
 	if not a then
 		a = BORDER_COLOR.a
@@ -248,13 +248,13 @@ end
 ------------------------------------------------------------------------
 
 function prototype:GetBorderColor()
-	local border = self.__PhanxBorder
+	local border = self.PhanxBorder
 	local color = border.color
 	return color.r, color.g, color.b, color.a
 end
 
 function prototype:SetBorderColor(r, g, b, a)
-	local border = self.__PhanxBorder
+	local border = self.PhanxBorder
 	local color = border.color
 
 	if not r or not g or not b then
@@ -275,12 +275,12 @@ end
 ------------------------------------------------------------------------
 
 function prototype:GetBorderLayer()
-	local border = self.__PhanxBorder
+	local border = self.PhanxBorder
 	return border.layer or BORDER_LAYER
 end
 
 function prototype:SetBorderLayer(layer)
-	local border = self.__PhanxBorder
+	local border = self.PhanxBorder
 
 	if not layer then
 		layer = BORDER_LAYER
@@ -296,12 +296,12 @@ end
 ------------------------------------------------------------------------
 
 function prototype:GetBorderParent()
-	local border = self.__PhanxBorder
+	local border = self.PhanxBorder
 	return border.parent or self
 end
 
 function prototype:SetBorderParent(parent)
-	local border = self.__PhanxBorder
+	local border = self.PhanxBorder
 
 	if not parent then
 		parent = self
@@ -317,7 +317,7 @@ end
 ------------------------------------------------------------------------
 
 function prototype:WithBorder(method, ...)
-	local textures = self.__PhanxBorder.textures
+	local textures = self.PhanxBorder.textures
 	for i = 1, #textures do
 		local tx = textures[i]
 		local re = tx[method](tx, ...)
@@ -343,5 +343,3 @@ function Addon.WithAllBorders(func, ...)
 end
 
 Addon.noop = noop
-
-------------------------------------------------------------------------
