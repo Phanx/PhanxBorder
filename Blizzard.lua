@@ -28,8 +28,17 @@ local noop = Addon.noop
 
 local _, PLAYER_CLASS = UnitClass("player")
 
+local function AddBorderOverlay(frame)
+	AddBorder(frame)
+
+	local overlay = CreateFrame("Frame", "$parentPhanxBorderOverlay", frame)
+	overlay:SetAllPoints()
+	frame:SetBorderParent(overlay)
+	frame.PhanxBorderOverlay = overlay
+end
+
 local function ColorByClass(frame, class)
-	if not frame.__PhanxBorder then
+	if not frame.PhanxBorder then
 		AddBorder(frame)
 	end
 	local color = (CUSTOM_CLASS_COLORS or RAID_CLASS_COLORS)[class and class ~= true or PLAYER_CLASS]
@@ -38,7 +47,7 @@ end
 Addon.ColorByClass = ColorByClass
 
 local function ColorByQuality(frame, quality, link)
-	if not frame.__PhanxBorder then
+	if not frame.PhanxBorder then
 		AddBorder(frame)
 	end
 	if link and not quality then
@@ -72,13 +81,14 @@ do
 		end
 	end
 	function AddBorderToItemButton(button)
-		if button.__PhanxBorder then return end
-		if not button.icon then return print(button:GetName(), "is not an item button!") end
-		AddBorder(button) -- , nil, 1)
-		button.icon:SetTexCoord(0.04, 0.96, 0.04, 0.96)
+		if button.PhanxBorder then return end
+
+		AddBorderOverlay(button)
 		if button:GetNormalTexture() then
 			button:GetNormalTexture():SetTexture("") -- useless extra icon border
 		end
+
+		button.icon:SetTexCoord(0.04, 0.96, 0.04, 0.96)
 
 		button.IconBorder:SetTexture("")
 		hooksecurefunc(button.IconBorder, "Hide", IconBorder_Hide)
@@ -196,6 +206,7 @@ tinsert(applyFuncs, function()
 		["VideoOptionsTooltip"] = false,
 		["WorldMapCompareTooltip1"] = false,
 		["WorldMapCompareTooltip2"] = false,
+		["WorldMapTooltip"] = false,
 
 		["MerchantRepairItemButton"] = 3,
 		["MerchantRepairAllButton"] = 3,
@@ -221,8 +232,6 @@ tinsert(applyFuncs, function()
 		end
 	end
 
-	AddBorder(WorldMapTooltip.BackdropFrame)
-
 	if GetMinimapShape and GetMinimapShape() == "SQUARE" then
 		AddBorder(Minimap)
 	end
@@ -234,6 +243,9 @@ tinsert(applyFuncs, function()
 	GhostFrameRight:SetTexture("")
 	GhostFrameMiddle:SetTexture("")
 	GhostFrameContentsFrameIcon:SetTexCoord(0.1, 0.9, 0.1, 0.9)
+
+	WorldMapTooltip.BackdropFrame:Hide()
+	WorldMapTooltip.BackdropFrame.Show = nop
 
 	---------------------------------------------------------------------
 	-- Bags
@@ -322,10 +334,9 @@ tinsert(applyFuncs, function()
 		local buttons = PaperDollEquipmentManagerPane.buttons
 		for i = 1, #buttons do
 			local button = buttons[i]
-			if not button.__PhanxBorder then
-				AddBorder(button)
+			if not button.PhanxBorder then
+				AddBorderOverlay(button)
 				button:SetBorderInsets(3, 129, 4, 4)
-				button.icon:SetDrawLayer("BORDER")
 				button.BgTop:SetTexture("")
 				button.BgMiddle:SetTexture("")
 				button.BgBottom:SetTexture("")
@@ -532,7 +543,7 @@ tinsert(applyFuncs, function()
 	---------------------------------------------------------------------
 
 	local function SkinTab(tab)
-		if tab.__PhanxBorder then return end
+		if tab.PhanxBorder then return end
 		AddBorder(tab)
 
 		tab:GetNormalTexture():SetTexCoord(0.06, 0.94, 0.06, 0.94)
@@ -672,7 +683,7 @@ tinsert(applyFuncs, function()
 	hooksecurefunc("PetBattleFrame_UpdateAllActionButtons", function(self)
 		--print("PetBattleFrame_UpdateAllActionButtons")
 		local f = self.BottomFrame
-		if f.CatchButton.__PhanxBorder then return end
+		if f.CatchButton.PhanxBorder then return end
 
 		AddBorder(f.CatchButton, nil, 2)
 		AddBorder(f.ForfeitButton, nil, 2)
@@ -877,17 +888,35 @@ tinsert(applyFuncs, function()
 	hooksecurefunc("PlayerTalentFrame_CreateSpecSpellButton", function(self, index)
 		local f = self.spellsScroll.child["abilityButton"..index]
 		AddBorder(f, nil, 10)
-		f.icon:SetDrawLayer("BORDER")
 		f.ring:Hide()
+	end)
+
+	hooksecurefunc("PlayerTalentFrame_UpdateSpecFrame", function(self, spec)
+		local shownSpec = self.previewSpec
+		local bonuses
+		if self.isPet then
+			bonuses = { GetSpecializationSpells(shownSpec, nil, self.isPet, true) }
+		else
+			local sex = self.isPet and UnitSex("pet") or UnitSex("player")
+			local id = GetSpecializationInfo(shownSpec, nil, self.isPet, nil, sex)
+			bonuses = SPEC_SPELLS_DISPLAY[id]
+		end
+		if bonuses then
+			local index = 1
+			for i = 1, #bonuses, 2 do
+				local frame = self.spellsScroll.child["abilityButton"..index]
+				local _, icon = GetSpellTexture(bonuses[i])
+				frame.icon:SetTexture(icon)
+				index = index + 1
+			end
+		end
 	end)
 
 	for row = 1, 7 do
 		for col = 1, 3 do
 			local f = _G["PlayerTalentFrameTalentsTalentRow"..row.."Talent"..col]
-			AddBorder(f)
-			--f:SetBorderLayer("OVERLAY")
+			AddBorderOverlay(f)
 			f:SetBorderInsets(35, 121, 4, 4)
-			f.icon:SetDrawLayer("BORDER")
 			f.icon:SetTexCoord(0.06, 0.94, 0.06, 0.94)
 		end
 	end
