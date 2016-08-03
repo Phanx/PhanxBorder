@@ -319,7 +319,7 @@ tinsert(applyFuncs, function()
 		-- print("Adding border to CoolLine icons")
 		for i = 1, CoolLine.border:GetNumChildren() do
 			local f = select(i, CoolLine.border:GetChildren())
-			if f.icon and not f.__PhanxBorder then
+			if f.icon and not f.PhanxBorder then
 				-- print("Adding border to CoolLine icon", i)
 				AddBorder(f)
 				f:SetBackdrop(nil)
@@ -339,6 +339,16 @@ tinsert(applyFuncs, function()
 end)
 
 ------------------------------------------------------------------------
+--	CrowBar
+------------------------------------------------------------------------
+
+tinsert(applyFuncs, function()
+	if not CrowBarButton then return true end
+	if LibStub and LibStub("Masque", true) then return end
+	AddBorder(CrowBarButton)
+end)
+
+------------------------------------------------------------------------
 --	DockingStation
 ------------------------------------------------------------------------
 --[[
@@ -355,6 +365,17 @@ tinsert(applyFuncs, function()
 	end
 end)
 ]]
+------------------------------------------------------------------------
+--	ExtraQuestButton
+------------------------------------------------------------------------
+
+tinsert(applyFuncs, function()
+	if not ExtraQuestButton then return true end
+	if LibStub and LibStub("Masque", true) then return end
+	ExtraQuestButton.Artwork:SetAlpha(0)
+	AddBorder(ExtraQuestButton)
+end)
+
 ------------------------------------------------------------------------
 --	Forte_Cooldown
 ------------------------------------------------------------------------
