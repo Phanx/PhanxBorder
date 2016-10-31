@@ -244,9 +244,6 @@ tinsert(applyFuncs, function()
 	GhostFrameMiddle:SetTexture("")
 	GhostFrameContentsFrameIcon:SetTexCoord(0.1, 0.9, 0.1, 0.9)
 
-	WorldMapTooltip.BackdropFrame:Hide()
-	WorldMapTooltip.BackdropFrame.Show = nop
-
 	---------------------------------------------------------------------
 	-- Bags
 	---------------------------------------------------------------------

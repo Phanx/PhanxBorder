@@ -1,4 +1,4 @@
-## Interface: 70000
+## Interface: 70100
 
 ## Title: PhanxBorder
 ## Notes: Adds shiny borders to stuff.
