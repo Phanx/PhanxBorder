@@ -197,8 +197,6 @@ tinsert(applyFuncs, function()
 		["ItemRefShoppingTooltip1"] = false,
 		["ItemRefShoppingTooltip2"] = false,
 		["ItemRefTooltip"] = false,
-		["MovieRecordingFrameTextTooltip1"] = false,
-		["MovieRecordingFrameTextTooltip2"] = false,
 		["PartyMemberBuffTooltip"] = false,
 		["ShoppingTooltip1"] = false,
 		["ShoppingTooltip2"] = false,
@@ -232,7 +230,7 @@ tinsert(applyFuncs, function()
 		end
 	end
 
-	if GetMinimapShape and GetMinimapShape() == "SQUARE" then
+	if type(GetMinimapShape) == "function" and GetMinimapShape() == "SQUARE" then
 		AddBorder(Minimap)
 	end
 
@@ -573,6 +571,7 @@ tinsert(applyFuncs, function()
 		AddBorder(button, nil, nil, false)
 		button.EmptySlot:SetTexture("")
 		button.UnlearnedFrame:SetTexture("")
+		button.SpellHighlightTexture:SetTexture("") -- not on action bar
 		_G["SpellButton" .. i .. "SlotFrame"]:SetTexture("") -- swirly thing
 		_G["SpellButton" .. i .. "IconTexture"]:SetTexCoord(0.06, 0.94, 0.06, 0.94)
 		button:HookScript("OnDisable", Button_OnDisable)
@@ -842,7 +841,7 @@ tinsert(applyFuncs, function()
 			button.special:SetShadowColor(0, 0, 0, 1)
 		end
 	end)
-
+--[[
 	-------------
 	-- Wardrobe
 	-------------
@@ -853,7 +852,7 @@ tinsert(applyFuncs, function()
 		model.Border:Hide()
 		AddBorder(model, nil, -1)
 	end
-	
+
 	hooksecurefunc("WardrobeCollectionFrame_Update", function(button)
 		for i = 1, WARDROBE_PAGE_SIZE do
 			local index = i + (WardrobeCollectionFrame_GetCurrentPage() - 1) * WARDROBE_PAGE_SIZE
@@ -870,6 +869,7 @@ tinsert(applyFuncs, function()
 			end
 		end
 	end)
+]]
 end)
 
 ------------------------------------------------------------------------
