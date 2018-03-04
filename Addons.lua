@@ -193,7 +193,7 @@ tinsert(applyFuncs, function()
 		AddBorder(frame)
 		origBorderSize[frame] = frame:GetBorderSize()
 		frame:SetBorderSize()
-		hooksecurefunc(frame, "UpdateScale", ResizeChildBorders)
+		hooksecurefunc(frame, "OnSetScale", ResizeChildBorders)
 
 		if USE_CLASS_COLOR then
 			local _, class = UnitClass("player")
